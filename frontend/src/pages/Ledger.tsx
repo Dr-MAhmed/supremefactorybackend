@@ -1,0 +1,124 @@
+import { useEffect, useState } from 'react';
+import api from '../lib/api';
+
+interface LedgerEntry {
+  id: string;
+  date: string;
+  voucherType: string;
+  voucherId: string;
+  description: string;
+  debit: number;
+  credit: number;
+  runningBalance: number;
+}
+
+export default function Ledger() {
+  const [activeTab, setActiveTab] = useState<'account' | 'party'>('account');
+  const [entries, setEntries] = useState<LedgerEntry[]>([]);
+  const [closingBalance, setClosingBalance] = useState(0);
+  const [selectedId, setSelectedId] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const fetchLedger = async (id: string, type: 'account' | 'party') => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const { data } = await api.get(`/ledger/${type}/${id}`);
+      setEntries(data.entries || []);
+      setClosingBalance(data.closingBalance || 0);
+    } catch (error) {
+      console.error(`Failed to fetch ${type} ledger`, error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(value);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Ledger</h1>
+        <p className="mt-1 text-sm text-slate-500">View account and party transactions</p>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex gap-4">
+          {['account', 'party'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab as any);
+                setSelectedId('');
+                setEntries([]);
+              }}
+              className={`px-4 py-2 text-sm font-medium transition ${
+                activeTab === tab ? 'bg-navy text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {tab === 'account' ? 'By Account' : 'By Party'}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700">Select {activeTab === 'account' ? 'Account' : 'Party'}</label>
+          <input
+            type="text"
+            placeholder={`Enter ${activeTab} name`}
+            value={selectedId}
+            onChange={(e) => {
+              setSelectedId(e.target.value);
+              fetchLedger(e.target.value, activeTab);
+            }}
+            className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+          />
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-center text-slate-500">Loading ledger...</p>
+      ) : entries.length === 0 ? (
+        <p className="text-center text-slate-500">Select a {activeTab} to view transactions</p>
+      ) : (
+        <>
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <table className="w-full">
+              <thead className="border-b border-slate-200 bg-slate-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Voucher</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Description</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Debit</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Credit</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((e) => (
+                  <tr key={e.id} className="border-b border-slate-200 hover:bg-slate-50">
+                    <td className="px-6 py-4 text-sm text-slate-600">{new Date(e.date).toLocaleDateString('en-PK')}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-navy">{e.voucherId}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{e.description}</td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{e.debit > 0 ? formatCurrency(e.debit) : '-'}</td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{e.credit > 0 ? formatCurrency(e.credit) : '-'}</td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-navy">{formatCurrency(e.runningBalance)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-slate-700">Closing Balance</p>
+              <p className="text-2xl font-semibold text-navy">{formatCurrency(closingBalance)}</p>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

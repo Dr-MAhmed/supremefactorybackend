@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../backend/node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(ACCOUNTANT)
+  isActive     Boolean  @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime @default(now())
+  journalEntries JournalEntry[] @relation("createdBy")
+}
+
+enum UserRole {
+  ADMIN
+  ACCOUNTANT
+  VIEWER
+}
+
+model Account {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  name      String
+  type      AccountType
+  parentId  String?
+  parent    Account?  @relation("AccountChildren", fields: [parentId], references: [id])
+  children  Account[] @relation("AccountChildren")
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model Party {
+  id                    String    @id @default(uuid())
+  type                  PartyType
+  name                  String
+  contactPerson         String?
+  phone                 String?
+  email                 String?
+  address               String?
+  city                  String?
+  ntn                   String?
+  openingBalance        Decimal   @default(0)
+  openingBalanceType    BalanceType @default(DR)
+  creditLimit           Decimal   @default(0)
+  paymentTerms          String?
+  notes                 String?
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+  BOTH
+}
+
+enum BalanceType {
+  DR
+  CR
+}
+
+model Purchase {
+  id               String      @id @default(uuid())
+  voucherNo        String      @unique
+  date             DateTime
+  partyId          String
+  party            Party       @relation(fields: [partyId], references: [id])
+  supplierInvoiceNo String?
+  subtotal         Decimal
+  discount         Decimal
+  tax              Decimal
+  total            Decimal
+  paidAmount       Decimal
+  paymentStatus    PaymentStatus
+  remarks          String?
+  createdById      String
+  createdBy        User        @relation("createdBy", fields: [createdById], references: [id])
+  createdAt        DateTime    @default(now())
+  items            PurchaseItem[]
+}
+
+model PurchaseItem {
+  id         String   @id @default(uuid())
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id])
+  description String
+  quantity   Decimal
+  unit       String
+  rate       Decimal
+  amount     Decimal
+}
+
+model Sale {
+  id             String      @id @default(uuid())
+  invoiceNo      String      @unique
+  date           DateTime
+  partyId        String
+  party          Party       @relation(fields: [partyId], references: [id])
+  customerPo     String?
+  salesperson    String?
+  subtotal       Decimal
+  discount       Decimal
+  tax            Decimal
+  total          Decimal
+  receivedAmount Decimal
+  paymentStatus  PaymentStatus
+  dueDate        DateTime?
+  remarks        String?
+  createdById    String
+  createdBy      User        @relation("createdBy", fields: [createdById], references: [id])
+  createdAt      DateTime    @default(now())
+  items          SaleItem[]
+}
+
+model SaleItem {
+  id        String @id @default(uuid())
+  saleId    String
+  sale      Sale   @relation(fields: [saleId], references: [id])
+  description String
+  quantity  Decimal
+  unit      String
+  rate      Decimal
+  amount    Decimal
+}
+
+model JournalEntry {
+  id         String      @id @default(uuid())
+  voucherType VoucherType
+  voucherId  String
+  date       DateTime
+  accountId  String
+  account    Account     @relation(fields: [accountId], references: [id])
+  partyId    String?
+  party      Party?      @relation(fields: [partyId], references: [id])
+  description String?
+  debit      Decimal     @default(0)
+  credit     Decimal     @default(0)
+  createdById String
+  createdBy  User        @relation("createdBy", fields: [createdById], references: [id])
+  createdAt  DateTime    @default(now())
+}
+
+enum VoucherType {
+  PURCHASE
+  PURCHASE_RETURN
+  SALE
+  SALE_RETURN
+  PAYMENT
+  RECEIPT
+  JOURNAL
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+model CompanySetting {
+  id                 String   @id @default(uuid())
+  companyName        String
+  address            String
+  phone              String
+  email              String
+  logoUrl            String?
+  ntn                String?
+  currency           String   @default("PKR")
+  financialYearStart DateTime
+  invoiceTerms       String?
+  updatedAt          DateTime @updatedAt
+}
