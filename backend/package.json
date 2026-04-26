@@ -9,7 +9,7 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate --schema=../database/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema=../database/schema.prisma --name init",
-    "seed": "ts-node --transpile-only ../database/seed.ts"
+    "seed": "ts-node --project tsconfig.json --transpile-only ../database/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.1",
