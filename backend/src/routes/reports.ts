@@ -1,13 +1,23 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import prisma from '../prisma';
 import { authenticate } from '../middleware/auth';
+import { asyncHandler } from '../utils/asyncHandler';
+import { validateQuery } from '../middleware/validate';
 
 const router = Router();
+const dateRangeQuerySchema = z.object({
+  startDate: z.string().date().optional(),
+  endDate: z.string().date().optional()
+});
+const asOfQuerySchema = z.object({
+  asOf: z.string().date().optional()
+});
 
 router.use(authenticate);
 
 // Trial Balance
-router.get('/trial-balance', async (req, res) => {
+router.get('/trial-balance', validateQuery(dateRangeQuerySchema), asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
 
   const where: any = {};
@@ -24,7 +34,7 @@ router.get('/trial-balance', async (req, res) => {
 
   const accountMap = new Map<string, { code: string; name: string; type: string; debit: number; credit: number }>();
 
-  entries.forEach((e) => {
+  entries.forEach((e: any) => {
     if (!accountMap.has(e.accountId)) {
       accountMap.set(e.accountId, {
         code: e.account.code,
@@ -44,10 +54,10 @@ router.get('/trial-balance', async (req, res) => {
   const totalCredit = trialBalance.reduce((sum, a) => sum + a.credit, 0);
 
   res.json({ accounts: trialBalance, totalDebit, totalCredit, isBalanced: Math.abs(totalDebit - totalCredit) < 0.01 });
-});
+}));
 
 // Profit & Loss
-router.get('/profit-loss', async (req, res) => {
+router.get('/profit-loss', validateQuery(dateRangeQuerySchema), asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
 
   const where: any = { account: { type: { in: ['REVENUE', 'EXPENSE'] } } };
@@ -65,7 +75,7 @@ router.get('/profit-loss', async (req, res) => {
   let totalRevenue = 0;
   let totalExpense = 0;
 
-  entries.forEach((e) => {
+  entries.forEach((e: any) => {
     if (e.account.type === 'REVENUE') {
       totalRevenue += e.credit || 0;
       totalRevenue -= e.debit || 0;
@@ -78,10 +88,10 @@ router.get('/profit-loss', async (req, res) => {
   const netProfit = totalRevenue - totalExpense;
 
   res.json({ totalRevenue, totalExpense, netProfit });
-});
+}));
 
 // Balance Sheet
-router.get('/balance-sheet', async (req, res) => {
+router.get('/balance-sheet', validateQuery(asOfQuerySchema), asyncHandler(async (req, res) => {
   const asOf = req.query.asOf ? new Date(req.query.asOf as string) : new Date();
 
   const where: any = { date: { lte: asOf } };
@@ -93,7 +103,7 @@ router.get('/balance-sheet', async (req, res) => {
 
   const accountMap = new Map<string, { code: string; name: string; type: string; balance: number }>();
 
-  entries.forEach((e) => {
+  entries.forEach((e: any) => {
     if (!accountMap.has(e.accountId)) {
       accountMap.set(e.accountId, {
         code: e.account.code,
@@ -124,20 +134,20 @@ router.get('/balance-sheet', async (req, res) => {
     totalEquity,
     isBalanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01
   });
-});
+}));
 
 // Party Outstanding Report
-router.get('/outstanding', async (req, res) => {
+router.get('/outstanding', asyncHandler(async (req, res) => {
   const parties = await prisma.party.findMany({ where: { isActive: true } });
 
   const outstanding = await Promise.all(
-    parties.map(async (party) => {
+    parties.map(async (party: any) => {
       const entries = await prisma.journalEntry.findMany({
         where: { partyId: party.id }
       });
 
       let balance = 0;
-      entries.forEach((e) => {
+      entries.forEach((e: any) => {
         balance += (e.debit || 0) - (e.credit || 0);
       });
 
@@ -148,10 +158,10 @@ router.get('/outstanding', async (req, res) => {
   );
 
   res.json(outstanding);
-});
+}));
 
 // Sales Report
-router.get('/sales', async (req, res) => {
+router.get('/sales', validateQuery(dateRangeQuerySchema), asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
 
   const where: any = {};
@@ -166,10 +176,10 @@ router.get('/sales', async (req, res) => {
     include: { party: true, items: true }
   });
 
-  const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
+  const totalSales = sales.reduce((sum: number, s: any) => sum + s.total, 0);
   const byCustomer = new Map<string, number>();
 
-  sales.forEach((s) => {
+  sales.forEach((s: any) => {
     byCustomer.set(s.party.name, (byCustomer.get(s.party.name) || 0) + s.total);
   });
 
@@ -178,10 +188,10 @@ router.get('/sales', async (req, res) => {
     count: sales.length,
     byCustomer: Array.from(byCustomer.entries()).map(([name, amount]) => ({ name, amount }))
   });
-});
+}));
 
 // Purchase Report
-router.get('/purchases', async (req, res) => {
+router.get('/purchases', validateQuery(dateRangeQuerySchema), asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
 
   const where: any = {};
@@ -196,10 +206,10 @@ router.get('/purchases', async (req, res) => {
     include: { party: true, items: true }
   });
 
-  const totalPurchases = purchases.reduce((sum, p) => sum + p.total, 0);
+  const totalPurchases = purchases.reduce((sum: number, p: any) => sum + p.total, 0);
   const bySupplier = new Map<string, number>();
 
-  purchases.forEach((p) => {
+  purchases.forEach((p: any) => {
     bySupplier.set(p.party.name, (bySupplier.get(p.party.name) || 0) + p.total);
   });
 
@@ -208,6 +218,6 @@ router.get('/purchases', async (req, res) => {
     count: purchases.length,
     bySupplier: Array.from(bySupplier.entries()).map(([name, amount]) => ({ name, amount }))
   });
-});
+}));
 
 export default router;

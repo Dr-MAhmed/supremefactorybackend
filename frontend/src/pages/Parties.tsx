@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '../components/ToastProvider';
 
 interface Party {
   id: string;
@@ -12,10 +16,39 @@ interface Party {
   isActive: boolean;
 }
 
+const partySchema = z.object({
+  type: z.enum(['CUSTOMER', 'SUPPLIER', 'BOTH']),
+  name: z.string().min(3, 'Party name must be at least 3 characters'),
+  email: z.string().email('Enter a valid email').optional().or(z.literal('')),
+  phone: z.string().optional(),
+  city: z.string().optional(),
+  creditLimit: z.coerce.number().min(0, 'Credit limit must be 0 or greater')
+});
+
+type PartyFormValues = z.infer<typeof partySchema>;
+
 export default function Parties() {
   const [parties, setParties] = useState<Party[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showToast } = useToast();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm<PartyFormValues>({
+    resolver: zodResolver(partySchema),
+    defaultValues: {
+      type: 'CUSTOMER',
+      name: '',
+      email: '',
+      phone: '',
+      city: '',
+      creditLimit: 0
+    }
+  });
 
   useEffect(() => {
     fetchParties();
@@ -28,6 +61,7 @@ export default function Parties() {
       setParties(data);
     } catch (error) {
       console.error('Failed to fetch parties', error);
+      showToast('Failed to load parties', 'error');
     } finally {
       setLoading(false);
     }
@@ -35,6 +69,27 @@ export default function Parties() {
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(value);
+  };
+
+  const onSubmit = async (values: PartyFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await api.post('/parties', {
+        ...values,
+        email: values.email || null,
+        phone: values.phone || null,
+        city: values.city || null
+      });
+      showToast('Party created successfully');
+      reset();
+      setShowForm(false);
+      await fetchParties();
+    } catch (error) {
+      console.error('Failed to create party', error);
+      showToast('Failed to create party', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -55,26 +110,60 @@ export default function Parties() {
       {showForm && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              console.log('Create party');
-            }}
+            onSubmit={handleSubmit(onSubmit)}
             className="space-y-4"
           >
             <div className="grid grid-cols-2 gap-4">
-              <select className="rounded-2xl border border-slate-200 px-4 py-2 text-sm">
-                <option>CUSTOMER</option>
-                <option>SUPPLIER</option>
-                <option>BOTH</option>
+              <select className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" {...register('type')}>
+                <option value="CUSTOMER">CUSTOMER</option>
+                <option value="SUPPLIER">SUPPLIER</option>
+                <option value="BOTH">BOTH</option>
               </select>
-              <input type="text" placeholder="Party Name" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="email" placeholder="Email" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="phone" placeholder="Phone" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="text" placeholder="City" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="number" placeholder="Credit Limit" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
+              <div>
+                <input
+                  type="text"
+                  placeholder="Party Name"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  {...register('name')}
+                />
+                {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name.message}</p>}
+              </div>
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  {...register('email')}
+                />
+                {errors.email && <p className="mt-1 text-xs text-rose-600">{errors.email.message}</p>}
+              </div>
+              <input
+                type="text"
+                placeholder="Phone"
+                className="rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                {...register('phone')}
+              />
+              <input
+                type="text"
+                placeholder="City"
+                className="rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                {...register('city')}
+              />
+              <div>
+                <input
+                  type="number"
+                  placeholder="Credit Limit"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  {...register('creditLimit')}
+                />
+                {errors.creditLimit && <p className="mt-1 text-xs text-rose-600">{errors.creditLimit.message}</p>}
+              </div>
             </div>
-            <button className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]">
-              Create Party
+            <button
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? 'Creating Party...' : 'Create Party'}
             </button>
           </form>
         </div>

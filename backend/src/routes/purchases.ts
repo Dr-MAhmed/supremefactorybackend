@@ -1,12 +1,41 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import prisma from '../prisma';
-import { authenticate } from '../middleware/auth';
+import { authenticate, AuthRequest } from '../middleware/auth';
+import { asyncHandler } from '../utils/asyncHandler';
+import { validateBody, validateParams, validateQuery } from '../middleware/validate';
+import { AppError } from '../middleware/errorHandler';
 
 const router = Router();
+const purchaseItemSchema = z.object({
+  productName: z.string().min(1),
+  quantity: z.number().positive(),
+  rate: z.number().nonnegative(),
+  amount: z.number().nonnegative()
+});
+const purchaseSchema = z.object({
+  partyId: z.string().min(1),
+  supplierInvoiceNo: z.string().nullable().optional(),
+  items: z.array(purchaseItemSchema).min(1),
+  subtotal: z.number().nonnegative(),
+  discount: z.number().nonnegative().default(0),
+  tax: z.number().nonnegative().default(0),
+  total: z.number().nonnegative(),
+  remarks: z.string().nullable().optional()
+});
+const purchaseParamsSchema = z.object({
+  id: z.string().min(1)
+});
+const purchaseListQuerySchema = z.object({
+  partyId: z.string().min(1).optional(),
+  status: z.string().min(1).optional(),
+  startDate: z.string().date().optional(),
+  endDate: z.string().date().optional()
+});
 
 router.use(authenticate);
 
-router.get('/', async (req, res) => {
+router.get('/', validateQuery(purchaseListQuerySchema), asyncHandler(async (req, res) => {
   const { partyId, status, startDate, endDate } = req.query;
   const where: any = {};
 
@@ -25,21 +54,22 @@ router.get('/', async (req, res) => {
   });
 
   res.json(purchases);
-});
+}));
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateParams(purchaseParamsSchema), asyncHandler(async (req, res) => {
   const purchase = await prisma.purchase.findUnique({
     where: { id: req.params.id },
     include: { party: true, items: true }
   });
 
-  if (!purchase) return res.status(404).json({ message: 'Purchase not found' });
+  if (!purchase) throw new AppError('Purchase not found', 404);
   res.json(purchase);
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', validateBody(purchaseSchema), asyncHandler(async (req, res) => {
   const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
-  const user = (req as any).user;
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
 
   const lastPurchase = await prisma.purchase.findFirst({ orderBy: { createdAt: 'desc' } });
   const lastNum = lastPurchase ? parseInt(lastPurchase.voucherNo.split('-')[2]) : 0;
@@ -65,29 +95,32 @@ router.post('/', async (req, res) => {
   });
 
   res.status(201).json(purchase);
-});
+}));
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseSchema.partial()), asyncHandler(async (req, res) => {
   const { supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
+  const updateData: any = {
+    supplierInvoiceNo,
+    subtotal,
+    discount,
+    tax,
+    total,
+    remarks
+  };
+  if (items) {
+    updateData.items = {
+      deleteMany: {},
+      create: items
+    };
+  }
 
   const purchase = await prisma.purchase.update({
     where: { id: req.params.id },
-    data: {
-      supplierInvoiceNo,
-      subtotal,
-      discount,
-      tax,
-      total,
-      remarks,
-      items: {
-        deleteMany: {},
-        create: items
-      }
-    },
+    data: updateData,
     include: { items: true }
   });
 
   res.json(purchase);
-});
+}));
 
 export default router;

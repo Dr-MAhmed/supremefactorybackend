@@ -1,5 +1,5 @@
-import { PrismaClient, UserRole, AccountType, PartyType, BalanceType, PaymentStatus, VoucherType } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import { PrismaClient, UserRole, AccountType, PartyType, BalanceType, PaymentStatus } from '../backend/node_modules/.prisma/client';
+import bcrypt from '../backend/node_modules/bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -123,7 +123,7 @@ async function main() {
 main()
   .catch((e) => {
     console.error(e);
-    process.exit(1);
+    throw e;
   })
   .finally(async () => {
     await prisma.$disconnect();

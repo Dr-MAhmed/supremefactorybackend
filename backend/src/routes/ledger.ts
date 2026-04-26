@@ -1,13 +1,23 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import prisma from '../prisma';
 import { authenticate } from '../middleware/auth';
-import dayjs from 'dayjs';
+import { asyncHandler } from '../utils/asyncHandler';
+import { validateParams, validateQuery } from '../middleware/validate';
 
 const router = Router();
+const ledgerParamsSchema = z.object({
+  accountId: z.string().min(1).optional(),
+  partyId: z.string().min(1).optional()
+});
+const ledgerQuerySchema = z.object({
+  startDate: z.string().date().optional(),
+  endDate: z.string().date().optional()
+});
 
 router.use(authenticate);
 
-router.get('/account/:accountId', async (req, res) => {
+router.get('/account/:accountId', validateParams(ledgerParamsSchema), validateQuery(ledgerQuerySchema), asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
   const { accountId } = req.params;
 
@@ -25,7 +35,7 @@ router.get('/account/:accountId', async (req, res) => {
   });
 
   let balance = 0;
-  const ledger = entries.map((e) => {
+  const ledger = entries.map((e: any) => {
     balance += (e.debit || 0) - (e.credit || 0);
     return { ...e, runningBalance: balance };
   });
@@ -35,9 +45,9 @@ router.get('/account/:accountId', async (req, res) => {
     entries: ledger,
     closingBalance: balance
   });
-});
+}));
 
-router.get('/party/:partyId', async (req, res) => {
+router.get('/party/:partyId', validateParams(ledgerParamsSchema), validateQuery(ledgerQuerySchema), asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
   const { partyId } = req.params;
 
@@ -55,7 +65,7 @@ router.get('/party/:partyId', async (req, res) => {
   });
 
   let balance = 0;
-  const ledger = entries.map((e) => {
+  const ledger = entries.map((e: any) => {
     balance += (e.debit || 0) - (e.credit || 0);
     return { ...e, runningBalance: balance };
   });
@@ -65,6 +75,6 @@ router.get('/party/:partyId', async (req, res) => {
     entries: ledger,
     closingBalance: balance
   });
-});
+}));
 
 export default router;

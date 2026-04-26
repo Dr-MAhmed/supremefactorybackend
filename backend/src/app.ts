@@ -10,6 +10,7 @@ import salesRoutes from './routes/sales';
 import vouchersRoutes from './routes/vouchers';
 import ledgerRoutes from './routes/ledger';
 import reportsRoutes from './routes/reports';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
 
@@ -44,5 +45,8 @@ app.use('/api/v1/reports', reportsRoutes);
 app.get('/api/v1/health', (_req, res) => {
   res.json({ status: 'ok', service: 'supreme-cotton-backend' });
 });
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

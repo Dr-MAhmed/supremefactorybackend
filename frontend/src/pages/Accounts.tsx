@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '../components/ToastProvider';
 
 interface Account {
   id: string;
@@ -9,10 +13,33 @@ interface Account {
   isActive: boolean;
 }
 
+const accountSchema = z.object({
+  code: z.string().min(2, 'Code must be at least 2 characters'),
+  name: z.string().min(3, 'Name must be at least 3 characters'),
+  type: z.enum(['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'])
+});
+
+type AccountFormValues = z.infer<typeof accountSchema>;
+
 export default function Accounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showToast } = useToast();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm<AccountFormValues>({
+    resolver: zodResolver(accountSchema),
+    defaultValues: {
+      code: '',
+      name: '',
+      type: 'ASSET'
+    }
+  });
 
   useEffect(() => {
     fetchAccounts();
@@ -25,8 +52,25 @@ export default function Accounts() {
       setAccounts(data);
     } catch (error) {
       console.error('Failed to fetch accounts', error);
+      showToast('Failed to load accounts', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onSubmit = async (values: AccountFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await api.post('/accounts', values);
+      showToast('Account created successfully');
+      reset();
+      setShowForm(false);
+      await fetchAccounts();
+    } catch (error) {
+      console.error('Failed to create account', error);
+      showToast('Failed to create account', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -48,25 +92,41 @@ export default function Accounts() {
       {showForm && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              console.log('Create account');
-            }}
+            onSubmit={handleSubmit(onSubmit)}
             className="space-y-4"
           >
             <div className="grid grid-cols-2 gap-4">
-              <input type="text" placeholder="Account Code" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="text" placeholder="Account Name" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <select className="rounded-2xl border border-slate-200 px-4 py-2 text-sm">
-                <option>ASSET</option>
-                <option>LIABILITY</option>
-                <option>EQUITY</option>
-                <option>REVENUE</option>
-                <option>EXPENSE</option>
+              <div>
+                <input
+                  type="text"
+                  placeholder="Account Code"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  {...register('code')}
+                />
+                {errors.code && <p className="mt-1 text-xs text-rose-600">{errors.code.message}</p>}
+              </div>
+              <div>
+                <input
+                  type="text"
+                  placeholder="Account Name"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  {...register('name')}
+                />
+                {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name.message}</p>}
+              </div>
+              <select className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" {...register('type')}>
+                <option value="ASSET">ASSET</option>
+                <option value="LIABILITY">LIABILITY</option>
+                <option value="EQUITY">EQUITY</option>
+                <option value="REVENUE">REVENUE</option>
+                <option value="EXPENSE">EXPENSE</option>
               </select>
             </div>
-            <button className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]">
-              Create Account
+            <button
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
         </div>
