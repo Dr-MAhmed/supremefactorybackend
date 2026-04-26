@@ -28,4 +28,23 @@ router.post('/', validateBody(accountSchema), asyncHandler(async (req, res) => {
   res.status(201).json(account);
 }));
 
+router.put('/:id', validateBody(accountSchema.partial()), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { code, name, type, parentId } = req.body;
+  const account = await prisma.account.update({
+    where: { id },
+    data: { code, name, type, parentId: parentId || null }
+  });
+  res.json(account);
+}));
+
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await prisma.account.update({
+    where: { id },
+    data: { isActive: false }
+  });
+  res.status(204).send();
+}));
+
 export default router;

@@ -8,8 +8,9 @@ import { AppError } from '../middleware/errorHandler';
 
 const router = Router();
 const purchaseItemSchema = z.object({
-  productName: z.string().min(1),
+  description: z.string().min(1),
   quantity: z.number().positive(),
+  unit: z.string().min(1),
   rate: z.number().nonnegative(),
   amount: z.number().nonnegative()
 });

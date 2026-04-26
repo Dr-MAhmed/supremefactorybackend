@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, AccountType, PartyType, BalanceType, PaymentStatus } from '../backend/node_modules/.prisma/client';
+import { PrismaClient } from '../backend/node_modules/.prisma/client';
 import bcrypt from '../backend/node_modules/bcrypt';
 
 const prisma = new PrismaClient();
@@ -20,7 +20,7 @@ async function main() {
       name: 'Admin User',
       email: 'admin@supremecotton.com',
       passwordHash,
-      role: UserRole.ADMIN
+      role: 'ADMIN'
     }
   });
 
@@ -36,23 +36,23 @@ async function main() {
     }
   });
 
-  const cash = await prisma.account.create({ data: { code: '1001', name: 'Cash', type: AccountType.ASSET, isActive: true } });
-  const bank = await prisma.account.create({ data: { code: '1002', name: 'Bank', type: AccountType.ASSET, isActive: true } });
-  const ar = await prisma.account.create({ data: { code: '1101', name: 'Accounts Receivable', type: AccountType.ASSET, isActive: true } });
-  const ap = await prisma.account.create({ data: { code: '2001', name: 'Accounts Payable', type: AccountType.LIABILITY, isActive: true } });
-  const sales = await prisma.account.create({ data: { code: '4001', name: 'Sales Revenue', type: AccountType.REVENUE, isActive: true } });
-  const purchases = await prisma.account.create({ data: { code: '5001', name: 'Purchase Cost', type: AccountType.EXPENSE, isActive: true } });
+  const cash = await prisma.account.create({ data: { code: '1001', name: 'Cash', type: 'ASSET', isActive: true } });
+  const bank = await prisma.account.create({ data: { code: '1002', name: 'Bank', type: 'ASSET', isActive: true } });
+  const ar = await prisma.account.create({ data: { code: '1101', name: 'Accounts Receivable', type: 'ASSET', isActive: true } });
+  const ap = await prisma.account.create({ data: { code: '2001', name: 'Accounts Payable', type: 'LIABILITY', isActive: true } });
+  const sales = await prisma.account.create({ data: { code: '4001', name: 'Sales Revenue', type: 'REVENUE', isActive: true } });
+  const purchases = await prisma.account.create({ data: { code: '5001', name: 'Purchase Cost', type: 'EXPENSE', isActive: true } });
 
   const customers = await Promise.all([
-    prisma.party.create({ data: { type: PartyType.CUSTOMER, name: 'Faisal Traders', contactPerson: 'Ali Khan', phone: '+92 300 1112233', city: 'Faisalabad', openingBalance: 0, openingBalanceType: BalanceType.DR, creditLimit: 250000, paymentTerms: 'Net 30', notes: 'Top customer' } }),
-    prisma.party.create({ data: { type: PartyType.CUSTOMER, name: 'Textile Hub', contactPerson: 'Sara Ahmad', phone: '+92 301 2223344', city: 'Lahore', openingBalance: 0, openingBalanceType: BalanceType.DR, creditLimit: 180000, paymentTerms: 'Net 30' } }),
-    prisma.party.create({ data: { type: PartyType.CUSTOMER, name: 'Cotton World', contactPerson: 'Hamid Raza', phone: '+92 333 5556677', city: 'Karachi', openingBalance: 0, openingBalanceType: BalanceType.DR, creditLimit: 150000, paymentTerms: 'Net 45' } })
+    prisma.party.create({ data: { type: 'CUSTOMER', name: 'Faisal Traders', contactPerson: 'Ali Khan', phone: '+92 300 1112233', city: 'Faisalabad', openingBalance: 0, openingBalanceType: 'DR', creditLimit: 250000, paymentTerms: 'Net 30', notes: 'Top customer' } }),
+    prisma.party.create({ data: { type: 'CUSTOMER', name: 'Textile Hub', contactPerson: 'Sara Ahmad', phone: '+92 301 2223344', city: 'Lahore', openingBalance: 0, openingBalanceType: 'DR', creditLimit: 180000, paymentTerms: 'Net 30' } }),
+    prisma.party.create({ data: { type: 'CUSTOMER', name: 'Cotton World', contactPerson: 'Hamid Raza', phone: '+92 333 5556677', city: 'Karachi', openingBalance: 0, openingBalanceType: 'DR', creditLimit: 150000, paymentTerms: 'Net 45' } })
   ]);
 
   const suppliers = await Promise.all([
-    prisma.party.create({ data: { type: PartyType.SUPPLIER, name: 'Khan Cotton Mills', contactPerson: 'Usman Khan', phone: '+92 304 1234567', city: 'Gujranwala', openingBalance: 0, openingBalanceType: BalanceType.CR, notes: 'Primary cotton supplier' } }),
-    prisma.party.create({ data: { type: PartyType.SUPPLIER, name: 'Punjab Traders', contactPerson: 'Naveed Malik', phone: '+92 305 9876543', city: 'Sialkot', openingBalance: 0, openingBalanceType: BalanceType.CR } }),
-    prisma.party.create({ data: { type: PartyType.BOTH, name: 'Awan Enterprises', contactPerson: 'Ayesha Awan', phone: '+92 306 5566778', city: 'Islamabad', openingBalance: 0, openingBalanceType: BalanceType.DR } })
+    prisma.party.create({ data: { type: 'SUPPLIER', name: 'Khan Cotton Mills', contactPerson: 'Usman Khan', phone: '+92 304 1234567', city: 'Gujranwala', openingBalance: 0, openingBalanceType: 'CR', notes: 'Primary cotton supplier' } }),
+    prisma.party.create({ data: { type: 'SUPPLIER', name: 'Punjab Traders', contactPerson: 'Naveed Malik', phone: '+92 305 9876543', city: 'Sialkot', openingBalance: 0, openingBalanceType: 'CR' } }),
+    prisma.party.create({ data: { type: 'BOTH', name: 'Awan Enterprises', contactPerson: 'Ayesha Awan', phone: '+92 306 5566778', city: 'Islamabad', openingBalance: 0, openingBalanceType: 'DR' } })
   ]);
 
   await prisma.purchase.create({
@@ -66,7 +66,7 @@ async function main() {
       tax: 9000,
       total: 59000,
       paidAmount: 20000,
-      paymentStatus: PaymentStatus.PARTIAL,
+      paymentStatus: 'PARTIAL',
       remarks: 'Cotton bale purchase',
       createdById: admin.id,
       items: {
@@ -87,7 +87,7 @@ async function main() {
       tax: 7560,
       total: 49560,
       receivedAmount: 25000,
-      paymentStatus: PaymentStatus.PARTIAL,
+      paymentStatus: 'PARTIAL',
       dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
       remarks: 'Yarn delivery',
       createdById: admin.id,
@@ -108,7 +108,7 @@ async function main() {
       tax: 5760,
       total: 37760,
       paidAmount: 37760,
-      paymentStatus: PaymentStatus.PAID,
+      paymentStatus: 'PAID',
       remarks: 'Accessories purchase',
       createdById: admin.id,
       items: {

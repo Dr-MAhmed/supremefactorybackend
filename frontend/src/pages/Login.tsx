@@ -1,6 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
+import api from '../lib/api';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -10,14 +12,23 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors, isSubmitting }
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
-  const onSubmit = (data: LoginForm) => {
-    console.log('login', data);
+  const onSubmit = async (data: LoginForm) => {
+    try {
+      const res = await api.post('/auth/login', data);
+      localStorage.setItem('accessToken', res.data.accessToken);
+      localStorage.setItem('refreshToken', res.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      navigate('/');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Login failed');
+    }
   };
 
   return (
@@ -48,8 +59,12 @@ export default function Login() {
             />
             {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>}
           </div>
-          <button className="w-full rounded-2xl bg-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#163752]">
-            Sign In
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full rounded-2xl bg-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#163752] disabled:opacity-50"
+          >
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
       </div>
