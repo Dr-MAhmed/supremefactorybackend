@@ -1,5 +1,4 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Layout from './components/Layout';
@@ -11,20 +10,10 @@ import Vouchers from './pages/Vouchers';
 import Ledger from './pages/Ledger';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import { useAuth } from './components/AuthContext';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    setIsAuthenticated(!!token);
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">

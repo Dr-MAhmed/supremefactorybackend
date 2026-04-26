@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from './AuthContext';
 
 const navItems = [
   { label: 'Dashboard', path: '/' },
@@ -16,11 +17,10 @@ const navItems = [
 export default function Layout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    logout();
     navigate('/login');
   };
 
