@@ -9,7 +9,7 @@ import purchasesRoutes from './routes/purchases';
 import salesRoutes from './routes/sales';
 import vouchersRoutes from './routes/vouchers';
 import ledgerRoutes from './routes/ledger';
-import reportsRoutes from './routes/reports';
+import dashboardRoutes from './routes/dashboard';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -40,7 +40,7 @@ app.use('/api/v1/purchases', purchasesRoutes);
 app.use('/api/v1/sales', salesRoutes);
 app.use('/api/v1/vouchers', vouchersRoutes);
 app.use('/api/v1/ledger', ledgerRoutes);
-app.use('/api/v1/reports', reportsRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 app.get('/api/v1/health', (_req, res) => {
   res.json({ status: 'ok', service: 'supreme-cotton-backend' });

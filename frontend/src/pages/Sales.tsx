@@ -1,5 +1,28 @@
 import { useEffect, useState } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import api from '../lib/api';
+import { useToast } from '../components/ToastProvider';
+
+const saleSchema = z.object({
+  invoiceNo: z.string().min(1, 'Invoice number is required'),
+  date: z.string().min(1, 'Date is required'),
+  partyId: z.string().min(1, 'Customer is required'),
+  dueDate: z.string().min(1, 'Due date is required'),
+  discount: z.number().min(0, 'Discount must be positive'),
+  tax: z.number().min(0, 'Tax must be positive'),
+  subtotal: z.number().optional(),
+  total: z.number().optional(),
+  items: z.array(z.object({
+    description: z.string().min(1, 'Description is required'),
+    quantity: z.number().min(0.01, 'Quantity must be positive'),
+    unit: z.string().min(1, 'Unit is required'),
+    rate: z.number().min(0.01, 'Rate must be positive'),
+  })).min(1, 'At least one item is required'),
+});
+
+type SaleFormData = z.infer<typeof saleSchema>;
 
 interface SaleItem {
   id: string;
@@ -26,11 +49,41 @@ interface Sale {
 
 export default function Sales() {
   const [sales, setSales] = useState<Sale[]>([]);
+  const [parties, setParties] = useState<{ id: string; name: string }[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
+
+  const { register, control, handleSubmit, watch, reset, formState: { errors } } = useForm<SaleFormData>({
+    resolver: zodResolver(saleSchema),
+    defaultValues: {
+      invoiceNo: '',
+      date: new Date().toISOString().split('T')[0],
+      partyId: '',
+      dueDate: '',
+      discount: 0,
+      tax: 0,
+      items: [{ description: '', quantity: 1, unit: 'kg', rate: 0 }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'items',
+  });
+
+  const watchedItems = watch('items');
+  const watchedDiscount = watch('discount');
+  const watchedTax = watch('tax');
+
+  const subtotal = watchedItems?.reduce((sum, item) => sum + (item.quantity * item.rate), 0) || 0;
+  const discountAmount = (subtotal * (watchedDiscount || 0)) / 100;
+  const taxAmount = ((subtotal - discountAmount) * (watchedTax || 0)) / 100;
+  const total = subtotal - discountAmount + taxAmount;
 
   useEffect(() => {
     fetchSales();
+    fetchParties();
   }, []);
 
   const fetchSales = async () => {
@@ -42,6 +95,37 @@ export default function Sales() {
       console.error('Failed to fetch sales', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchParties = async () => {
+    try {
+      const { data } = await api.get('/parties');
+      setParties(data);
+    } catch (error) {
+      console.error('Failed to fetch parties', error);
+    }
+  };
+
+  const onSubmit = async (data: SaleFormData) => {
+    try {
+      const payload = {
+        ...data,
+        subtotal,
+        total,
+        items: data.items.map(item => ({
+          ...item,
+          amount: item.quantity * item.rate,
+        })),
+      };
+      await api.post('/sales', payload);
+      showToast('Sale created successfully', 'success');
+      setShowForm(false);
+      reset();
+      fetchSales();
+    } catch (error) {
+      console.error('Failed to create sale', error);
+      showToast('Failed to create sale', 'error');
     }
   };
 
@@ -66,20 +150,179 @@ export default function Sales() {
 
       {showForm && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              console.log('Create sale');
-            }}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <input type="text" placeholder="Customer" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="date" placeholder="Date" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="text" placeholder="Salesperson" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
-              <input type="number" placeholder="Amount" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" />
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Invoice No</label>
+                <input
+                  {...register('invoiceNo')}
+                  type="text"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                />
+                {errors.invoiceNo && <p className="mt-1 text-sm text-red-600">{errors.invoiceNo.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Date</label>
+                <input
+                  {...register('date')}
+                  type="date"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                />
+                {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Customer</label>
+                <select
+                  {...register('partyId')}
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                >
+                  <option value="">Select Customer</option>
+                  {parties.map((party) => (
+                    <option key={party.id} value={party.id}>
+                      {party.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.partyId && <p className="mt-1 text-sm text-red-600">{errors.partyId.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Due Date</label>
+                <input
+                  {...register('dueDate')}
+                  type="date"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                />
+                {errors.dueDate && <p className="mt-1 text-sm text-red-600">{errors.dueDate.message}</p>}
+              </div>
             </div>
-            <button className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]">
+
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-medium text-slate-900">Items</h3>
+                <button
+                  type="button"
+                  onClick={() => append({ description: '', quantity: 1, unit: 'kg', rate: 0 })}
+                  className="rounded-2xl bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                >
+                  Add Item
+                </button>
+              </div>
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="grid grid-cols-12 gap-4 items-end">
+                    <div className="col-span-4">
+                      <label className="block text-sm font-medium text-slate-700">Description</label>
+                      <input
+                        {...register(`items.${index}.description`)}
+                        type="text"
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                      />
+                      {errors.items?.[index]?.description && (
+                        <p className="mt-1 text-sm text-red-600">{errors.items[index].description.message}</p>
+                      )}
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-slate-700">Quantity</label>
+                      <input
+                        {...register(`items.${index}.quantity`, { valueAsNumber: true })}
+                        type="number"
+                        step="0.01"
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                      />
+                      {errors.items?.[index]?.quantity && (
+                        <p className="mt-1 text-sm text-red-600">{errors.items[index].quantity.message}</p>
+                      )}
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-slate-700">Unit</label>
+                      <input
+                        {...register(`items.${index}.unit`)}
+                        type="text"
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                      />
+                      {errors.items?.[index]?.unit && (
+                        <p className="mt-1 text-sm text-red-600">{errors.items[index].unit.message}</p>
+                      )}
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-slate-700">Rate</label>
+                      <input
+                        {...register(`items.${index}.rate`, { valueAsNumber: true })}
+                        type="number"
+                        step="0.01"
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                      />
+                      {errors.items?.[index]?.rate && (
+                        <p className="mt-1 text-sm text-red-600">{errors.items[index].rate.message}</p>
+                      )}
+                    </div>
+                    <div className="col-span-1">
+                      <p className="text-sm font-medium text-slate-900">
+                        {formatCurrency((watchedItems?.[index]?.quantity || 0) * (watchedItems?.[index]?.rate || 0))}
+                      </p>
+                    </div>
+                    <div className="col-span-1">
+                      {fields.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          className="rounded-2xl bg-red-100 px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Discount (%)</label>
+                <input
+                  {...register('discount', { valueAsNumber: true })}
+                  type="number"
+                  step="0.01"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                />
+                {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Tax (%)</label>
+                <input
+                  {...register('tax', { valueAsNumber: true })}
+                  type="number"
+                  step="0.01"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                />
+                {errors.tax && <p className="mt-1 text-sm text-red-600">{errors.tax.message}</p>}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal:</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Discount:</span>
+                <span>-{formatCurrency(discountAmount)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Tax:</span>
+                <span>{formatCurrency(taxAmount)}</span>
+              </div>
+              <div className="mt-2 flex justify-between border-t border-slate-200 pt-2 text-lg font-semibold">
+                <span>Total:</span>
+                <span>{formatCurrency(total)}</span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
+            >
               Create Invoice
             </button>
           </form>

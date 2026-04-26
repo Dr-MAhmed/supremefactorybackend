@@ -23,15 +23,15 @@ const receiptSchema = z.object({
   narration: z.string().min(1)
 });
 const journalSchema = z.object({
-  narration: z.string().min(1),
+  date: z.string().min(1),
+  description: z.string().min(1),
   entries: z.array(
     z.object({
       accountId: z.string().min(1),
-      description: z.string().optional(),
-      debit: z.number().nonnegative().optional(),
-      credit: z.number().nonnegative().optional()
+      debit: z.number().nonnegative(),
+      credit: z.number().nonnegative()
     })
-  ).min(2)
+  ).min(1)
 });
 const voucherListQuerySchema = z.object({
   partyId: z.string().min(1).optional(),
@@ -210,7 +210,7 @@ router.get('/journal', validateQuery(journalListQuerySchema), asyncHandler(async
 }));
 
 router.post('/journal', validateBody(journalSchema), asyncHandler(async (req, res) => {
-  const { narration, entries: entryLines } = req.body;
+  const { date, description, entries: entryLines } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
 
@@ -232,9 +232,9 @@ router.post('/journal', validateBody(journalSchema), asyncHandler(async (req, re
     data: entryLines.map((e: any) => ({
       voucherType: 'JOURNAL',
       voucherId,
-      date: new Date(),
+      date: new Date(date),
       accountId: e.accountId,
-      description: e.description || narration,
+      description,
       debit: e.debit || 0,
       credit: e.credit || 0,
       createdById: user.userId

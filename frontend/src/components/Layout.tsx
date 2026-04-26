@@ -1,4 +1,4 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 const navItems = [
@@ -15,6 +15,14 @@ const navItems = [
 
 export default function Layout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -94,7 +102,10 @@ export default function Layout() {
               <p className="text-sm text-slate-500">Welcome to Supreme Cotton finance management.</p>
               </div>
             </div>
-            <button className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+            <button
+              onClick={handleLogout}
+              className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+            >
               Sign Out
             </button>
           </header>

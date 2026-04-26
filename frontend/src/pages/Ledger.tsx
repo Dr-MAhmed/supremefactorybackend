@@ -18,6 +18,37 @@ export default function Ledger() {
   const [closingBalance, setClosingBalance] = useState(0);
   const [selectedId, setSelectedId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
+  const [parties, setParties] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    fetchAccounts();
+    fetchParties();
+  }, []);
+
+  useEffect(() => {
+    if (selectedId) {
+      fetchLedger(selectedId, activeTab);
+    }
+  }, [selectedId, activeTab]);
+
+  const fetchAccounts = async () => {
+    try {
+      const { data } = await api.get('/accounts');
+      setAccounts(data);
+    } catch (error) {
+      console.error('Failed to fetch accounts', error);
+    }
+  };
+
+  const fetchParties = async () => {
+    try {
+      const { data } = await api.get('/parties');
+      setParties(data);
+    } catch (error) {
+      console.error('Failed to fetch parties', error);
+    }
+  };
 
   const fetchLedger = async (id: string, type: 'account' | 'party') => {
     if (!id) return;
@@ -65,16 +96,18 @@ export default function Ledger() {
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">Select {activeTab === 'account' ? 'Account' : 'Party'}</label>
-          <input
-            type="text"
-            placeholder={`Enter ${activeTab} name`}
+          <select
             value={selectedId}
-            onChange={(e) => {
-              setSelectedId(e.target.value);
-              fetchLedger(e.target.value, activeTab);
-            }}
+            onChange={(e) => setSelectedId(e.target.value)}
             className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-          />
+          >
+            <option value="">Select {activeTab === 'account' ? 'Account' : 'Party'}</option>
+            {(activeTab === 'account' ? accounts : parties).map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

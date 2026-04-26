@@ -15,16 +15,15 @@ const saleItemSchema = z.object({
   amount: z.number().nonnegative()
 });
 const saleSchema = z.object({
+  invoiceNo: z.string().min(1),
+  date: z.string().min(1),
   partyId: z.string().min(1),
-  customerPo: z.string().nullable().optional(),
-  salesperson: z.string().nullable().optional(),
-  items: z.array(saleItemSchema).min(1),
-  subtotal: z.number().nonnegative(),
+  dueDate: z.string().min(1),
   discount: z.number().nonnegative().default(0),
   tax: z.number().nonnegative().default(0),
+  subtotal: z.number().nonnegative(),
   total: z.number().nonnegative(),
-  dueDate: z.string().datetime().nullable().optional(),
-  remarks: z.string().nullable().optional()
+  items: z.array(saleItemSchema).min(1)
 });
 const saleParamsSchema = z.object({
   id: z.string().min(1)
@@ -70,21 +69,15 @@ router.get('/:id', validateParams(saleParamsSchema), asyncHandler(async (req, re
 }));
 
 router.post('/', validateBody(saleSchema), asyncHandler(async (req, res) => {
-  const { partyId, customerPo, salesperson, items, subtotal, discount, tax, total, dueDate, remarks } = req.body;
+  const { invoiceNo, date, partyId, dueDate, discount, tax, subtotal, total, items } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
-
-  const lastSale = await prisma.sale.findFirst({ orderBy: { createdAt: 'desc' } });
-  const lastNum = lastSale ? parseInt(lastSale.invoiceNo.split('-')[2]) : 0;
-  const invoiceNo = `INV-${new Date().getFullYear()}-${String(lastNum + 1).padStart(5, '0')}`;
 
   const sale = await prisma.sale.create({
     data: {
       invoiceNo,
-      date: new Date(),
+      date: new Date(date),
       partyId,
-      customerPo,
-      salesperson,
       subtotal,
       discount,
       tax,
@@ -92,11 +85,10 @@ router.post('/', validateBody(saleSchema), asyncHandler(async (req, res) => {
       receivedAmount: 0,
       paymentStatus: 'UNPAID',
       dueDate: dueDate ? new Date(dueDate) : undefined,
-      remarks,
       createdById: user.userId,
       items: { create: items }
     },
-    include: { items: true }
+    include: { items: true, party: true }
   });
 
   res.status(201).json(sale);
