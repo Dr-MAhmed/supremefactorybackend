@@ -23,10 +23,12 @@ const updateUserSchema = z.object({
   isActive: z.boolean().optional()
 });
 
+router.use(authenticate);
+
 // GET /users - List all users (admin only)
 router.get('/', asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
-  if (!user) throw new AppError('Unauthorized', 401);
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (user.role !== 'ADMIN') throw new AppError('Only admins can view users', 403);
 
   const users = await prisma.user.findMany({
@@ -48,7 +50,7 @@ router.get('/', asyncHandler(async (req: AuthRequest, res) => {
 // POST /users - Create new user (admin only)
 router.post('/', asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
-  if (!user) throw new AppError('Unauthorized', 401);
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (user.role !== 'ADMIN') throw new AppError('Only admins can create users', 403);
 
   const { name, email, password, role } = createUserSchema.parse(req.body);
@@ -83,7 +85,7 @@ router.post('/', asyncHandler(async (req: AuthRequest, res) => {
 // GET /users/:id - Get user details
 router.get('/:id', asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
-  if (!user) throw new AppError('Unauthorized', 401);
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
   const targetUser = await prisma.user.findUnique({
     where: { id: req.params.id },
@@ -111,7 +113,7 @@ router.get('/:id', asyncHandler(async (req: AuthRequest, res) => {
 // PATCH /users/:id - Update user
 router.patch('/:id', asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
-  if (!user) throw new AppError('Unauthorized', 401);
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
   // Only admins or the user themselves can update
   if (user.role !== 'ADMIN' && user.userId !== req.params.id) {
@@ -158,7 +160,7 @@ router.patch('/:id', asyncHandler(async (req: AuthRequest, res) => {
 // DELETE /users/:id - Deactivate user (admin only)
 router.delete('/:id', asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
-  if (!user) throw new AppError('Unauthorized', 401);
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (user.role !== 'ADMIN') throw new AppError('Only admins can delete users', 403);
 
   // Prevent deleting self
