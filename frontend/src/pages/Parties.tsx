@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '../components/ToastProvider';
+import { usePermissions } from '../hooks/usePermissions';
+import ViewOnlyNotice from '../components/ViewOnlyNotice';
 
 interface Party {
   id: string;
@@ -33,6 +35,8 @@ export default function Parties() {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
+  const { canEdit } = usePermissions();
+
   const {
     register,
     handleSubmit,
@@ -99,15 +103,19 @@ export default function Parties() {
           <h1 className="text-2xl font-semibold text-slate-900">Parties (Customers & Suppliers)</h1>
           <p className="mt-1 text-sm text-slate-500">Manage customers and suppliers</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
-        >
-          {showForm ? 'Cancel' : 'New Party'}
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
+          >
+            {showForm ? 'Cancel' : 'New Party'}
+          </button>
+        ) : (
+          <ViewOnlyNotice entity="parties" />
+        )}
       </div>
 
-      {showForm && (
+      {canEdit && showForm && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <form
             onSubmit={handleSubmit(onSubmit)}

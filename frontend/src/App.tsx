@@ -12,6 +12,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
 import { useAuth } from './components/AuthContext';
+import RoleGuard from './components/RoleGuard';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -36,7 +37,14 @@ function App() {
           <Route path="ledger" element={<Ledger />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="users" element={<Users />} />
+          <Route
+            path="users"
+            element={
+              <RoleGuard allowedRoles={['ADMIN']}>
+                <Users />
+              </RoleGuard>
+            }
+          />
         </Route>
       </Routes>
     </div>

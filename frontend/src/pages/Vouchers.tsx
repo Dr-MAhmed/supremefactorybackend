@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '../lib/api';
 import { useToast } from '../components/ToastProvider';
+import { usePermissions } from '../hooks/usePermissions';
+import ViewOnlyNotice from '../components/ViewOnlyNotice';
 
 const voucherSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -30,6 +32,7 @@ export default function Vouchers() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const { showToast } = useToast();
+  const { canEdit } = usePermissions();
 
   const { register, control, handleSubmit, watch, reset, formState: { errors } } = useForm<VoucherFormData>({
     resolver: zodResolver(voucherSchema),
@@ -81,12 +84,16 @@ export default function Vouchers() {
           <h1 className="text-2xl font-semibold text-slate-900">Vouchers</h1>
           <p className="mt-1 text-sm text-slate-500">Payment, receipt, and journal vouchers</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
-        >
-          {showForm ? 'Cancel' : 'New Voucher'}
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
+          >
+            {showForm ? 'Cancel' : 'New Voucher'}
+          </button>
+        ) : (
+          <ViewOnlyNotice entity="vouchers" />
+        )}
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -104,7 +111,7 @@ export default function Vouchers() {
           ))}
         </div>
 
-        {showForm && (
+        {canEdit && showForm && (
           <div className="border-b border-slate-200 p-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">

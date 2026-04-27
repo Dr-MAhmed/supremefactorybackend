@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '../lib/api';
 import { useToast } from '../components/ToastProvider';
+import { usePermissions } from '../hooks/usePermissions';
+import ViewOnlyNotice from '../components/ViewOnlyNotice';
 
 const saleSchema = z.object({
   invoiceNo: z.string().min(1, 'Invoice number is required'),
@@ -53,6 +55,7 @@ export default function Sales() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
+  const { canEdit } = usePermissions();
 
   const { register, control, handleSubmit, watch, reset, formState: { errors } } = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
@@ -140,15 +143,19 @@ export default function Sales() {
           <h1 className="text-2xl font-semibold text-slate-900">Sales Invoices</h1>
           <p className="mt-1 text-sm text-slate-500">Create and manage customer invoices</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
-        >
-          {showForm ? 'Cancel' : 'New Invoice'}
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
+          >
+            {showForm ? 'Cancel' : 'New Invoice'}
+          </button>
+        ) : (
+          <ViewOnlyNotice entity="sales invoices" />
+        )}
       </div>
 
-      {showForm && (
+      {canEdit && showForm && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
