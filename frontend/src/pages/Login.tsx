@@ -29,7 +29,12 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(res.data.user));
       navigate('/');
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Login failed');
+      console.error('Login error', error);
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Login failed';
+      alert(message);
     }
   };
 

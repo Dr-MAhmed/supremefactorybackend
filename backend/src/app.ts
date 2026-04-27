@@ -24,16 +24,24 @@ app.use(
   })
 );
 
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false
-  })
-);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many login attempts. Please wait a few minutes and try again.'
+});
 
-app.use('/api/v1/auth', authRoutes);
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 500 : 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests. Please wait a few minutes and try again.'
+});
+
+app.use('/api/v1/auth', authLimiter, authRoutes);
+app.use('/api/v1', apiLimiter);
 app.use('/api/v1/accounts', accountsRoutes);
 app.use('/api/v1/parties', partiesRoutes);
 app.use('/api/v1/purchases', purchasesRoutes);
