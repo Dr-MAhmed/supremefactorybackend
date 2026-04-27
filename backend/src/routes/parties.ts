@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../prisma';
-import { authenticate } from '../middleware/auth';
+import { authenticate, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validateBody } from '../middleware/validate';
+import { AppError } from '../middleware/errorHandler';
 
 const router = Router();
 const partySchema = z.object({
@@ -29,13 +30,21 @@ router.get('/', asyncHandler(async (_req, res) => {
   res.json(parties);
 }));
 
-router.post('/', validateBody(partySchema), asyncHandler(async (req, res) => {
+router.post('/', validateBody(partySchema), asyncHandler(async (req: AuthRequest, res) => {
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot create parties', 403);
+  
   const data = req.body as z.infer<typeof partySchema>;
   const party = await prisma.party.create({ data: { ...data, isActive: true } });
   res.status(201).json(party);
 }));
 
-router.put('/:id', validateBody(partySchema.partial()), asyncHandler(async (req, res) => {
+router.put('/:id', validateBody(partySchema.partial()), asyncHandler(async (req: AuthRequest, res) => {
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot update parties', 403);
+  
   const { id } = req.params;
   const data = req.body;
   const party = await prisma.party.update({
@@ -45,7 +54,11 @@ router.put('/:id', validateBody(partySchema.partial()), asyncHandler(async (req,
   res.json(party);
 }));
 
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', asyncHandler(async (req: AuthRequest, res) => {
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role !== 'ADMIN') throw new AppError('Only admins can delete parties', 403);
+  
   const { id } = req.params;
   await prisma.party.update({
     where: { id },

@@ -66,10 +66,11 @@ router.get('/payment', validateQuery(voucherListQuerySchema), asyncHandler(async
   res.json(entries);
 }));
 
-router.post('/payment', validateBody(paymentSchema), asyncHandler(async (req, res) => {
+router.post('/payment', validateBody(paymentSchema), asyncHandler(async (req: AuthRequest, res) => {
   const { partyId, amount, paymentMethod, bankAccount, chequeNo, chequeDate, narration } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot create payment vouchers', 403);
 
   const lastEntry = await prisma.journalEntry.findFirst({
     where: { voucherType: 'PAYMENT' },
@@ -138,10 +139,11 @@ router.get('/receipt', validateQuery(voucherListQuerySchema), asyncHandler(async
   res.json(entries);
 }));
 
-router.post('/receipt', validateBody(receiptSchema), asyncHandler(async (req, res) => {
+router.post('/receipt', validateBody(receiptSchema), asyncHandler(async (req: AuthRequest, res) => {
   const { partyId, amount, paymentMethod, narration } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot create receipt vouchers', 403);
 
   const lastEntry = await prisma.journalEntry.findFirst({
     where: { voucherType: 'RECEIPT' },
@@ -209,10 +211,11 @@ router.get('/journal', validateQuery(journalListQuerySchema), asyncHandler(async
   res.json(entries);
 }));
 
-router.post('/journal', validateBody(journalSchema), asyncHandler(async (req, res) => {
+router.post('/journal', validateBody(journalSchema), asyncHandler(async (req: AuthRequest, res) => {
   const { date, description, entries: entryLines } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot create journal vouchers', 403);
 
   const totalDebit = entryLines.reduce((sum: number, e: any) => sum + (e.debit || 0), 0);
   const totalCredit = entryLines.reduce((sum: number, e: any) => sum + (e.credit || 0), 0);

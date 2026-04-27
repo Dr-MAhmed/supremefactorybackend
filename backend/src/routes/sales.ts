@@ -68,10 +68,11 @@ router.get('/:id', validateParams(saleParamsSchema), asyncHandler(async (req, re
   res.json(sale);
 }));
 
-router.post('/', validateBody(saleSchema), asyncHandler(async (req, res) => {
+router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest, res) => {
   const { invoiceNo, date, partyId, dueDate, discount, tax, subtotal, total, items } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot create sales', 403);
 
   const sale = await prisma.sale.create({
     data: {
@@ -94,7 +95,11 @@ router.post('/', validateBody(saleSchema), asyncHandler(async (req, res) => {
   res.status(201).json(sale);
 }));
 
-router.patch('/:id', validateParams(saleParamsSchema), validateBody(saleSchema.partial()), asyncHandler(async (req, res) => {
+router.patch('/:id', validateParams(saleParamsSchema), validateBody(saleSchema.partial()), asyncHandler(async (req: AuthRequest, res) => {
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot update sales', 403);
+  
   const { customerPo, salesperson, items, subtotal, discount, tax, total, dueDate, remarks } = req.body;
   const updateData: any = {
     customerPo,

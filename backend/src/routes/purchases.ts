@@ -67,10 +67,11 @@ router.get('/:id', validateParams(purchaseParamsSchema), asyncHandler(async (req
   res.json(purchase);
 }));
 
-router.post('/', validateBody(purchaseSchema), asyncHandler(async (req, res) => {
+router.post('/', validateBody(purchaseSchema), asyncHandler(async (req: AuthRequest, res) => {
   const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot create purchases', 403);
 
   const lastPurchase = await prisma.purchase.findFirst({ orderBy: { createdAt: 'desc' } });
   const lastNum = lastPurchase ? parseInt(lastPurchase.voucherNo.split('-')[2]) : 0;
@@ -98,7 +99,11 @@ router.post('/', validateBody(purchaseSchema), asyncHandler(async (req, res) => 
   res.status(201).json(purchase);
 }));
 
-router.patch('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseSchema.partial()), asyncHandler(async (req, res) => {
+router.patch('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseSchema.partial()), asyncHandler(async (req: AuthRequest, res) => {
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot update purchases', 403);
+  
   const { supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
   const updateData: any = {
     supplierInvoiceNo,
