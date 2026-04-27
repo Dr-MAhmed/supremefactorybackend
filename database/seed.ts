@@ -24,6 +24,26 @@ async function main() {
     }
   });
 
+  const accountantHash = await bcrypt.hash('Accountant123', 12);
+  await prisma.user.create({
+    data: {
+      name: 'Accountant User',
+      email: 'accountant@supremecotton.com',
+      passwordHash: accountantHash,
+      role: 'ACCOUNTANT'
+    }
+  });
+
+  const viewerHash = await bcrypt.hash('Viewer123', 12);
+  await prisma.user.create({
+    data: {
+      name: 'Viewer User',
+      email: 'viewer@supremecotton.com',
+      passwordHash: viewerHash,
+      role: 'VIEWER'
+    }
+  });
+
   await prisma.companySetting.create({
     data: {
       companyName: 'Supreme Cotton',

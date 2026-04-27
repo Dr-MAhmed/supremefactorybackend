@@ -3,6 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import authRoutes from './routes/auth';
+import usersRoutes from './routes/users';
 import accountsRoutes from './routes/accounts';
 import partiesRoutes from './routes/parties';
 import purchasesRoutes from './routes/purchases';
@@ -42,6 +43,7 @@ const apiLimiter = rateLimit({
 
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1', apiLimiter);
+app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/accounts', accountsRoutes);
 app.use('/api/v1/parties', partiesRoutes);
 app.use('/api/v1/purchases', purchasesRoutes);

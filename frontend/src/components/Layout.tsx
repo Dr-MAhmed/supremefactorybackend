@@ -14,15 +14,23 @@ const navItems = [
   { label: 'Settings', path: '/settings' }
 ];
 
+const adminNavItems = [
+  { label: 'Users', path: '/users' }
+];
+
 export default function Layout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const displayNavItems = user?.role === 'ADMIN' 
+    ? [...navItems, ...adminNavItems]
+    : navItems;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -33,7 +41,7 @@ export default function Layout() {
             <p className="mt-2 text-sm text-slate-500">Ledger & Accounting Dashboard</p>
           </div>
           <nav className="space-y-2 text-sm font-medium text-slate-700">
-            {navItems.map((item) => (
+            {displayNavItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -45,6 +53,15 @@ export default function Layout() {
               </NavLink>
             ))}
           </nav>
+          <div className="mt-auto border-t border-slate-200 pt-4">
+            <div className="rounded-lg bg-slate-50 p-3 text-sm">
+              <p className="font-medium text-slate-900">{user?.name}</p>
+              <p className="text-xs text-slate-600">{user?.email}</p>
+              <p className="mt-1 inline-block rounded-full bg-navy/10 px-2 py-1 text-xs font-semibold text-navy">
+                {user?.role}
+              </p>
+            </div>
+          </div>
         </aside>
         {isMobileNavOpen && (
           <button
@@ -73,7 +90,7 @@ export default function Layout() {
             </button>
           </div>
           <nav className="space-y-2 text-sm font-medium text-slate-700">
-            {navItems.map((item) => (
+            {displayNavItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -86,6 +103,15 @@ export default function Layout() {
               </NavLink>
             ))}
           </nav>
+          <div className="mt-auto border-t border-slate-200 pt-4">
+            <div className="rounded-lg bg-slate-50 p-3 text-sm">
+              <p className="font-medium text-slate-900">{user?.name}</p>
+              <p className="text-xs text-slate-600">{user?.email}</p>
+              <p className="mt-1 inline-block rounded-full bg-navy/10 px-2 py-1 text-xs font-semibold text-navy">
+                {user?.role}
+              </p>
+            </div>
+          </div>
         </aside>
         <main className="flex-1 p-6">
           <header className="mb-6 flex items-center justify-between">
@@ -98,16 +124,22 @@ export default function Layout() {
                 Menu
               </button>
               <div>
-              <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
-              <p className="text-sm text-slate-500">Welcome to Supreme Cotton finance management.</p>
+                <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
+                <p className="text-sm text-slate-500">Welcome {user?.name} ({user?.role})</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-4">
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-medium text-slate-900">{user?.name}</p>
+                <p className="text-xs text-slate-500">{user?.role}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+              >
+                Sign Out
+              </button>
+            </div>
           </header>
           <Outlet />
         </main>
