@@ -39,7 +39,7 @@ interface Sale {
   id: string;
   invoiceNo: string;
   date: string;
-  party: { name: string };
+  party: { id: string; name: string };
   subtotal: number;
   discount: number;
   tax: number;
@@ -54,10 +54,11 @@ export default function Sales() {
   const [parties, setParties] = useState<{ id: string; name: string }[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const { showToast } = useToast();
   const { canEdit } = usePermissions();
 
-  const { register, control, handleSubmit, watch, reset, formState: { errors } } = useForm<SaleFormData>({
+  const { register, control, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
       invoiceNo: '',
@@ -110,6 +111,29 @@ export default function Sales() {
     }
   };
 
+  const editSale = (sale: Sale) => {
+    setEditingSale(sale);
+    setValue('invoiceNo', sale.invoiceNo);
+    setValue('date', sale.date.split('T')[0]);
+    setValue('partyId', sale.party.id);
+    setValue('dueDate', sale.dueDate.split('T')[0]);
+    setValue('discount', sale.discount);
+    setValue('tax', sale.tax);
+    setValue('items', sale.items.map(item => ({
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      rate: item.rate
+    })));
+    setShowForm(true);
+  };
+
+  const cancelEdit = () => {
+    setEditingSale(null);
+    reset();
+    setShowForm(false);
+  };
+
   const onSubmit = async (data: SaleFormData) => {
     try {
       const payload = {
@@ -121,14 +145,20 @@ export default function Sales() {
           amount: item.quantity * item.rate,
         })),
       };
-      await api.post('/sales', payload);
-      showToast('Sale created successfully', 'success');
+      if (editingSale) {
+        await api.put(`/sales/${editingSale.id}`, payload);
+        showToast('Sale updated successfully', 'success');
+      } else {
+        await api.post('/sales', payload);
+        showToast('Sale created successfully', 'success');
+      }
+      setEditingSale(null);
       setShowForm(false);
       reset();
       fetchSales();
     } catch (error) {
-      console.error('Failed to create sale', error);
-      showToast('Failed to create sale', 'error');
+      console.error('Failed to save sale', error);
+      showToast(`Failed to ${editingSale ? 'update' : 'create'} sale`, 'error');
     }
   };
 
@@ -145,10 +175,10 @@ export default function Sales() {
         </div>
         {canEdit ? (
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => editingSale ? cancelEdit() : setShowForm(!showForm)}
             className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
           >
-            {showForm ? 'Cancel' : 'New Invoice'}
+            {editingSale ? 'Cancel Edit' : showForm ? 'Cancel' : 'New Sale'}
           </button>
         ) : (
           <ViewOnlyNotice entity="sales invoices" />
@@ -157,6 +187,9 @@ export default function Sales() {
 
       {canEdit && showForm && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold text-slate-900">
+            {editingSale ? 'Edit Sale' : 'Create New Sale'}
+          </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -330,7 +363,7 @@ export default function Sales() {
               type="submit"
               className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
             >
-              Create Invoice
+              {editingSale ? 'Update Invoice' : 'Create Invoice'}
             </button>
           </form>
         </div>
@@ -351,6 +384,7 @@ export default function Sales() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Due Date</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Status</th>
+                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -374,6 +408,16 @@ export default function Sales() {
                       {s.paymentStatus}
                     </span>
                   </td>
+                  {canEdit && (
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => editSale(s)}
+                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

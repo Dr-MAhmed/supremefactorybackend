@@ -20,7 +20,7 @@ interface Purchase {
   id: string;
   voucherNo: string;
   date: string;
-  party: { name: string };
+  party: { id: string; name: string };
   supplierInvoiceNo: string;
   subtotal: number;
   discount: number;
@@ -62,6 +62,7 @@ export default function Purchases() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
   const { showToast } = useToast();
   const { canEdit } = usePermissions();
 
@@ -127,6 +128,28 @@ export default function Purchases() {
     }
   };
 
+  const editPurchase = (purchase: Purchase) => {
+    setEditingPurchase(purchase);
+    setValue('partyId', purchase.party.id);
+    setValue('supplierInvoiceNo', purchase.supplierInvoiceNo || '');
+    setValue('items', purchase.items.map(item => ({
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      rate: item.rate,
+      amount: item.amount
+    })));
+    setValue('discount', purchase.discount);
+    setValue('tax', purchase.tax);
+    setShowForm(true);
+  };
+
+  const cancelEdit = () => {
+    setEditingPurchase(null);
+    reset();
+    setShowForm(false);
+  };
+
   const onSubmit = async (values: PurchaseFormValues) => {
     setIsSubmitting(true);
     try {
@@ -135,14 +158,20 @@ export default function Purchases() {
         subtotal: watchedItems.reduce((sum, item) => sum + (item.amount || 0), 0),
         total: watchedItems.reduce((sum, item) => sum + (item.amount || 0), 0) - (values.discount || 0) + (values.tax || 0)
       };
-      await api.post('/purchases', payload);
-      showToast('Purchase created successfully');
+      if (editingPurchase) {
+        await api.put(`/purchases/${editingPurchase.id}`, payload);
+        showToast('Purchase updated successfully');
+      } else {
+        await api.post('/purchases', payload);
+        showToast('Purchase created successfully');
+      }
       reset();
+      setEditingPurchase(null);
       setShowForm(false);
       await fetchPurchases();
     } catch (error) {
-      console.error('Failed to create purchase', error);
-      showToast('Failed to create purchase', 'error');
+      console.error('Failed to save purchase', error);
+      showToast(`Failed to ${editingPurchase ? 'update' : 'create'} purchase`, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -161,10 +190,10 @@ export default function Purchases() {
         </div>
         {canEdit ? (
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => editingPurchase ? cancelEdit() : setShowForm(!showForm)}
             className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
           >
-            {showForm ? 'Cancel' : 'New Purchase'}
+            {editingPurchase ? 'Cancel Edit' : showForm ? 'Cancel' : 'New Purchase'}
           </button>
         ) : (
           <ViewOnlyNotice entity="purchases" />
@@ -173,6 +202,9 @@ export default function Purchases() {
 
       {canEdit && showForm && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold text-slate-900">
+            {editingPurchase ? 'Edit Purchase' : 'Create New Purchase'}
+          </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -307,7 +339,7 @@ export default function Purchases() {
               disabled={isSubmitting}
               className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isSubmitting ? 'Creating Purchase...' : 'Create Purchase'}
+              {isSubmitting ? (editingPurchase ? 'Updating Purchase...' : 'Creating Purchase...') : (editingPurchase ? 'Update Purchase' : 'Create Purchase')}
             </button>
           </form>
         </div>
@@ -327,6 +359,7 @@ export default function Purchases() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Date</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Status</th>
+                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -349,6 +382,16 @@ export default function Purchases() {
                       {p.paymentStatus}
                     </span>
                   </td>
+                  {canEdit && (
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => editPurchase(p)}
+                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
