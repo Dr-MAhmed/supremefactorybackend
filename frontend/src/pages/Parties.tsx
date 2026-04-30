@@ -118,9 +118,10 @@ export default function Parties() {
       setEditingParty(null);
       setShowForm(false);
       await fetchParties();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save party', error);
-      showToast(`Failed to ${editingParty ? 'update' : 'create'} party`, 'error');
+      const errorMessage = error.response?.data?.message || error.message || `Failed to ${editingParty ? 'update' : 'create'} party`;
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }

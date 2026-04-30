@@ -9,19 +9,30 @@ import { AppError } from '../middleware/errorHandler';
 const router = Router();
 const purchaseItemSchema = z.object({
   description: z.string().min(1),
-  quantity: z.number().positive(),
+  quantity: z.coerce.number().positive(),
   unit: z.string().min(1),
-  rate: z.number().nonnegative(),
-  amount: z.number().nonnegative()
+  rate: z.coerce.number().nonnegative(),
+  amount: z.coerce.number().nonnegative()
 });
 const purchaseSchema = z.object({
   partyId: z.string().min(1),
   supplierInvoiceNo: z.string().nullable().optional(),
   items: z.array(purchaseItemSchema).min(1),
-  subtotal: z.number().nonnegative(),
-  discount: z.number().nonnegative().default(0),
-  tax: z.number().nonnegative().default(0),
-  total: z.number().nonnegative(),
+  subtotal: z.coerce.number().nonnegative(),
+  discount: z.coerce.number().nonnegative().default(0),
+  tax: z.coerce.number().nonnegative().default(0),
+  total: z.coerce.number().nonnegative(),
+  remarks: z.string().nullable().optional()
+});
+
+const purchaseUpdateSchema = z.object({
+  partyId: z.string().min(1).optional(),
+  supplierInvoiceNo: z.string().nullable().optional(),
+  items: z.array(purchaseItemSchema).min(1).optional(),
+  subtotal: z.coerce.number().nonnegative().optional(),
+  discount: z.coerce.number().nonnegative().optional(),
+  tax: z.coerce.number().nonnegative().optional(),
+  total: z.coerce.number().nonnegative().optional(),
   remarks: z.string().nullable().optional()
 });
 const purchaseParamsSchema = z.object({
@@ -99,13 +110,14 @@ router.post('/', validateBody(purchaseSchema), asyncHandler(async (req: AuthRequ
   res.status(201).json(purchase);
 }));
 
-router.put('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseSchema.partial()), asyncHandler(async (req: AuthRequest, res) => {
+router.put('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseUpdateSchema), asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update purchases', 403);
   
-  const { supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
+  const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
   const updateData: any = {
+    partyId,
     supplierInvoiceNo,
     subtotal,
     discount,
@@ -123,7 +135,7 @@ router.put('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseSc
   const purchase = await prisma.purchase.update({
     where: { id: req.params.id },
     data: updateData,
-    include: { items: true }
+    include: { items: true, party: true }
   });
 
   res.json(purchase);

@@ -169,9 +169,10 @@ export default function Purchases() {
       setEditingPurchase(null);
       setShowForm(false);
       await fetchPurchases();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save purchase', error);
-      showToast(`Failed to ${editingPurchase ? 'update' : 'create'} purchase`, 'error');
+      const errorMessage = error.response?.data?.message || error.message || `Failed to ${editingPurchase ? 'update' : 'create'} purchase`;
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,7 +249,7 @@ export default function Purchases() {
                   </div>
                   <div className="col-span-2">
                     <input
-                      {...register(`items.${index}.quantity`)}
+                      {...register(`items.${index}.quantity`, { valueAsNumber: true })}
                       type="number"
                       step="0.01"
                       placeholder="Qty"
@@ -269,7 +270,7 @@ export default function Purchases() {
                   </div>
                   <div className="col-span-2">
                     <input
-                      {...register(`items.${index}.rate`)}
+                      {...register(`items.${index}.rate`, { valueAsNumber: true })}
                       type="number"
                       step="0.01"
                       placeholder="Rate"
@@ -310,7 +311,7 @@ export default function Purchases() {
               <div>
                 <label className="block text-sm font-medium text-slate-700">Discount</label>
                 <input
-                  {...register('discount')}
+                  {...register('discount', { valueAsNumber: true })}
                   type="number"
                   step="0.01"
                   className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
@@ -319,7 +320,7 @@ export default function Purchases() {
               <div>
                 <label className="block text-sm font-medium text-slate-700">Tax (GST)</label>
                 <input
-                  {...register('tax')}
+                  {...register('tax', { valueAsNumber: true })}
                   type="number"
                   step="0.01"
                   className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"

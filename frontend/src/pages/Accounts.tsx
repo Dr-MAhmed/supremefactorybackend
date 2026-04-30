@@ -92,9 +92,10 @@ export default function Accounts() {
       setEditingAccount(null);
       setShowForm(false);
       await fetchAccounts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save account', error);
-      showToast(`Failed to ${editingAccount ? 'update' : 'create'} account`, 'error');
+      const errorMessage = error.response?.data?.message || error.message || `Failed to ${editingAccount ? 'update' : 'create'} account`;
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }

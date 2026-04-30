@@ -156,9 +156,10 @@ export default function Sales() {
       setShowForm(false);
       reset();
       fetchSales();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save sale', error);
-      showToast(`Failed to ${editingSale ? 'update' : 'create'} sale`, 'error');
+      const errorMessage = error.response?.data?.message || error.message || `Failed to ${editingSale ? 'update' : 'create'} sale`;
+      showToast(errorMessage, 'error');
     }
   };
 

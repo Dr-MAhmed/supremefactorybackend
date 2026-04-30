@@ -25,6 +25,21 @@ const saleSchema = z.object({
   total: z.number().nonnegative(),
   items: z.array(saleItemSchema).min(1)
 });
+
+const saleUpdateSchema = z.object({
+  invoiceNo: z.string().min(1).optional(),
+  date: z.string().min(1).optional(),
+  partyId: z.string().min(1).optional(),
+  dueDate: z.string().min(1).optional(),
+  discount: z.number().nonnegative().optional(),
+  tax: z.number().nonnegative().optional(),
+  subtotal: z.number().nonnegative().optional(),
+  total: z.number().nonnegative().optional(),
+  items: z.array(saleItemSchema).min(1).optional(),
+  customerPo: z.string().nullable().optional(),
+  salesperson: z.string().nullable().optional(),
+  remarks: z.string().nullable().optional()
+});
 const saleParamsSchema = z.object({
   id: z.string().min(1)
 });
@@ -95,20 +110,23 @@ router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest,
   res.status(201).json(sale);
 }));
 
-router.put('/:id', validateParams(saleParamsSchema), validateBody(saleSchema.partial()), asyncHandler(async (req: AuthRequest, res) => {
+router.put('/:id', validateParams(saleParamsSchema), validateBody(saleUpdateSchema), asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update sales', 403);
   
-  const { customerPo, salesperson, items, subtotal, discount, tax, total, dueDate, remarks } = req.body;
+  const { invoiceNo, date, partyId, dueDate, customerPo, salesperson, items, subtotal, discount, tax, total, remarks } = req.body;
   const updateData: any = {
+    invoiceNo,
+    date: date ? new Date(date) : undefined,
+    partyId,
+    dueDate: dueDate ? new Date(dueDate) : undefined,
     customerPo,
     salesperson,
     subtotal,
     discount,
     tax,
     total,
-    dueDate: dueDate ? new Date(dueDate) : undefined,
     remarks
   };
   if (items) {
@@ -121,7 +139,7 @@ router.put('/:id', validateParams(saleParamsSchema), validateBody(saleSchema.par
   const sale = await prisma.sale.update({
     where: { id: req.params.id },
     data: updateData,
-    include: { items: true }
+    include: { items: true, party: true }
   });
 
   res.json(sale);
