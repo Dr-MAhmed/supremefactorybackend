@@ -95,8 +95,13 @@ export default function Sales() {
     try {
       const { data } = await api.get('/sales');
       setSales(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch sales', error);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        showToast('Session expired. Please login again.', 'error');
+      } else {
+        showToast('Failed to load sales data', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -106,8 +111,9 @@ export default function Sales() {
     try {
       const { data } = await api.get('/parties');
       setParties(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch parties', error);
+      showToast('Failed to load customers', 'error');
     }
   };
 

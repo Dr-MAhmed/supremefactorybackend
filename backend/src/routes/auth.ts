@@ -5,6 +5,7 @@ import { z } from 'zod';
 import prisma from '../prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { AppError } from '../middleware/errorHandler';
+import { validateBody } from '../middleware/validate';
 
 const router = Router();
 
@@ -33,6 +34,45 @@ router.post('/login', asyncHandler(async (req, res) => {
   });
 
   return res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+}));
+
+const refreshSchema = z.object({
+  refreshToken: z.string().min(1, 'Refresh token is required')
+});
+
+router.post('/refresh', validateBody(refreshSchema), asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+  
+  try {
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'refresh') as any;
+    const user = await prisma.user.findUnique({ 
+      where: { id: payload.userId },
+      select: { id: true, name: true, email: true, role: true, isActive: true }
+    });
+    
+    if (!user || !user.isActive) {
+      throw new AppError('Invalid refresh token', 401);
+    }
+
+    const newAccessToken = jwt.sign(
+      { userId: user.id, role: user.role }, 
+      process.env.JWT_SECRET || 'secret', 
+      { expiresIn: '15m' }
+    );
+    const newRefreshToken = jwt.sign(
+      { userId: user.id }, 
+      process.env.JWT_REFRESH_SECRET || 'refresh', 
+      { expiresIn: '7d' }
+    );
+
+    return res.json({ 
+      accessToken: newAccessToken, 
+      refreshToken: newRefreshToken, 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role } 
+    });
+  } catch (error) {
+    throw new AppError('Invalid or expired refresh token', 401);
+  }
 }));
 
 export default router;
