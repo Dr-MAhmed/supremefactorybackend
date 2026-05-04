@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
+import api from '../lib/api';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import api from '../lib/api';
 import { useToast } from '../components/ToastProvider';
 import { usePermissions } from '../hooks/usePermissions';
 import ViewOnlyNotice from '../components/ViewOnlyNotice';
@@ -55,6 +55,8 @@ export default function Sales() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const { showToast } = useToast();
   const { canEdit } = usePermissions();
 
@@ -132,6 +134,24 @@ export default function Sales() {
       rate: item.rate
     })));
     setShowForm(true);
+  };
+
+  const openStatusModal = (sale: Sale) => {
+    setSelectedSale(sale);
+    setShowStatusModal(true);
+  }; 
+
+  const updateStatus = async (status: string, receivedAmount?: number) => {
+    if (!selectedSale) return;
+    try {
+      await api.patch(`/sales/${selectedSale.id}/status`, { paymentStatus: status, receivedAmount });
+      showToast('Status updated successfully', 'success');
+      setShowStatusModal(false);
+      setSelectedSale(null);
+      await fetchSales();
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Failed to update status', 'error');
+    }
   };
 
   const cancelEdit = () => {
@@ -417,16 +437,77 @@ export default function Sales() {
                   </td>
                   {canEdit && (
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => editSale(s)}
-                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => editSale(s)}
+                          className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => openStatusModal(s)}
+                          className="rounded-lg bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-200"
+                        >
+                          Status
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
               ))}
+
+        {showStatusModal && selectedSale && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Update Payment Status</h2>
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium">Invoice: {selectedSale.invoiceNo}</p>
+                  <p className="text-sm text-slate-500">Total: {formatCurrency(selectedSale.total)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <div className="relative">
+                    <select 
+                      onChange={(e) => updateStatus(e.target.value as string)}
+                      defaultValue={selectedSale.paymentStatus}
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm appearance-none bg-white"
+                    >
+                      <option value="UNPAID">Unpaid</option>
+                      <option value="PARTIAL">Partial</option>
+                      <option value="PAID">Paid</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                      ▼
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Received Amount</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    defaultValue={0}
+                    onBlur={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      updateStatus(selectedSale.paymentStatus, value);
+                    }}
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
             </tbody>
           </table>
         )}
