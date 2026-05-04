@@ -45,6 +45,11 @@ const purchaseListQuerySchema = z.object({
   endDate: z.string().date().optional()
 });
 
+const purchaseStatusSchema = z.object({
+  paymentStatus: z.enum(['UNPAID', 'PARTIAL', 'PAID']),
+  paidAmount: z.coerce.number().nonnegative().optional()
+});
+
 router.use(authenticate);
 
 router.get('/', validateQuery(purchaseListQuerySchema), asyncHandler(async (req, res) => {
@@ -169,6 +174,38 @@ router.patch('/:id', validateParams(purchaseParamsSchema), validateBody(purchase
   });
 
   res.json(purchase);
+}));
+
+router.patch('/:id/status', validateParams(purchaseParamsSchema), validateBody(purchaseStatusSchema), asyncHandler(async (req: AuthRequest, res) => {
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot update purchase status', 403);
+  
+  const { paymentStatus, paidAmount } = req.body;
+  
+  const purchase = await prisma.purchase.findUnique({
+    where: { id: req.params.id }
+  });
+  
+  if (!purchase) throw new AppError('Purchase not found', 404);
+  
+  let finalPaidAmount = paidAmount !== undefined ? paidAmount : purchase.paidAmount;
+  if (paymentStatus === 'PAID') {
+    finalPaidAmount = purchase.total;
+  } else if (paymentStatus === 'UNPAID') {
+    finalPaidAmount = 0;
+  }
+  
+  const updatedPurchase = await prisma.purchase.update({
+    where: { id: req.params.id },
+    data: {
+      paymentStatus,
+      paidAmount: finalPaidAmount
+    },
+    include: { party: true, items: true }
+  });
+  
+  res.json(updatedPurchase);
 }));
 
 export default router;

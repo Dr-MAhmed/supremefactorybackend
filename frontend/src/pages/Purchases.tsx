@@ -63,6 +63,8 @@ export default function Purchases() {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
   const { showToast } = useToast();
   const { canEdit } = usePermissions();
 
@@ -128,20 +130,38 @@ export default function Purchases() {
     }
   };
 
-  const editPurchase = (purchase: Purchase) => {
-    setEditingPurchase(purchase);
-    setValue('partyId', purchase.party.id);
-    setValue('supplierInvoiceNo', purchase.supplierInvoiceNo || '');
-    setValue('items', purchase.items.map(item => ({
-      description: item.description,
-      quantity: item.quantity,
-      unit: item.unit,
-      rate: item.rate,
-      amount: item.amount
-    })));
-    setValue('discount', purchase.discount);
-    setValue('tax', purchase.tax);
-    setShowForm(true);
+  const editPurchase = (purchase: Purchase) => {   
+    setEditingPurchase(purchase);  
+    setValue('partyId', purchase.party.id);    
+    setValue('supplierInvoiceNo', purchase.supplierInvoiceNo || '');  
+    setValue('items', purchase.items.map(item => ({      
+      description: item.description,      
+      quantity: item.quantity,      
+      unit: item.unit,      
+      rate: item.rate,      
+      amount: item.amount    
+    })));    
+    setValue('discount', purchase.discount);    
+    setValue('tax', purchase.tax);    
+    setShowForm(true);  
+  };  
+
+  const openStatusModal = (purchase: Purchase) => {    
+    setSelectedPurchase(purchase);    
+    setShowStatusModal(true);  
+  };  
+
+  const updateStatus = async (status: string, paidAmount?: number) => {    
+    if (!selectedPurchase) return;    
+    try {      
+      await api.patch(`/purchases/${selectedPurchase.id}/status`, { paymentStatus: status, paidAmount });      
+      showToast('Status updated successfully', 'success');      
+      setShowStatusModal(false);      
+      setSelectedPurchase(null);      
+      await fetchPurchases();    
+    } catch (error: any) {      
+      showToast(error.response?.data?.message || 'Failed to update status', 'error');    
+    }  
   };
 
   const cancelEdit = () => {
@@ -403,18 +423,79 @@ export default function Purchases() {
                   </td>
                   {canEdit && (
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => editPurchase(p)}
-                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => editPurchase(p)}
+                          className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => openStatusModal(p)}
+                          className="rounded-lg bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-200"
+                        >
+                          Status
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
               ))}
             </tbody>
           </table>
+        )}
+
+        {showStatusModal && selectedPurchase && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Update Payment Status</h2>
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium">Voucher: {selectedPurchase.voucherNo}</p>
+                  <p className="text-sm text-slate-500">Total: {formatCurrency(selectedPurchase.total)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <div className="relative">
+                    <select 
+                      onChange={(e) => updateStatus(e.target.value as string)}
+                      defaultValue={selectedPurchase.paymentStatus}
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm appearance-none bg-white"
+                    >
+                      <option value="UNPAID">Unpaid</option>
+                      <option value="PARTIAL">Partial</option>
+                      <option value="PAID">Paid</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                      ▼
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Paid Amount</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    defaultValue={0}
+                    onBlur={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      updateStatus(selectedPurchase.paymentStatus, value);
+                    }}
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
