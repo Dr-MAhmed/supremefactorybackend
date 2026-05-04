@@ -258,10 +258,14 @@ export default function Purchases() {
               <div>
                 <input
                   type="text"
-                  placeholder="Supplier Invoice #"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
                   {...register('supplierInvoiceNo')}
+                  readOnly={!editingPurchase}
+                  className={`w-full rounded-2xl border px-4 py-2 text-sm ${editingPurchase ? 'border-slate-200' : 'border-slate-300 bg-slate-50 cursor-not-allowed'}`}
+                  placeholder={!editingPurchase ? 'Auto-generated on save' : 'Supplier Invoice #'}
                 />
+                {!editingPurchase && (
+                  <span className="text-xs text-slate-500 block mt-1">(Auto)</span>
+                )}
               </div>
             </div>
 

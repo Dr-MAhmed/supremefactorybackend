@@ -89,16 +89,23 @@ router.post('/', validateBody(purchaseSchema), asyncHandler(async (req: AuthRequ
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot create purchases', 403);
 
-  const lastPurchase = await prisma.purchase.findFirst({ orderBy: { createdAt: 'desc' } });
-  const lastNum = lastPurchase ? parseInt(lastPurchase.voucherNo.split('-')[2]) : 0;
-  const voucherNo = `PUR-${new Date().getFullYear()}-${String(lastNum + 1).padStart(5, '0')}`;
+  let finalSupplierInvoiceNo = supplierInvoiceNo;
+  if (!finalSupplierInvoiceNo) {
+    const lastPurchase = await prisma.purchase.findFirst({ orderBy: { createdAt: 'desc' } });
+    const lastNum = lastPurchase && lastPurchase.supplierInvoiceNo ? parseInt(lastPurchase.supplierInvoiceNo.split('-')[2]) : 0;
+    finalSupplierInvoiceNo = `SUP-${new Date().getFullYear()}-${String(lastNum + 1).padStart(5, '0')}`;
+  }
+
+  const lastPurchaseVoucher = await prisma.purchase.findFirst({ orderBy: { createdAt: 'desc' } });
+  const lastNumVoucher = lastPurchaseVoucher ? parseInt(lastPurchaseVoucher.voucherNo.split('-')[2]) : 0;
+  const voucherNo = `PUR-${new Date().getFullYear()}-${String(lastNumVoucher + 1).padStart(5, '0')}`;
 
   const purchase = await prisma.purchase.create({
     data: {
       voucherNo,
       date: new Date(),
       partyId,
-      supplierInvoiceNo,
+      supplierInvoiceNo: finalSupplierInvoiceNo,
       subtotal,
       discount,
       tax,
