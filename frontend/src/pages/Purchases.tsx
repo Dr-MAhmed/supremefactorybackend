@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useApiError } from '../hooks/useApiError';
 import api from '../lib/api';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,6 +66,7 @@ export default function Purchases() {
   const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
+  const { handleError } = useApiError();
   const { showToast } = useToast();
   const { canEdit } = usePermissions();
 
@@ -113,9 +115,8 @@ export default function Purchases() {
     try {
       const { data } = await api.get('/purchases');
       setPurchases(data);
-    } catch (error) {
-      console.error('Failed to fetch purchases', error);
-      showToast('Failed to load purchases', 'error');
+    } catch (error: any) {
+      handleError(error, 'Failed to load purchases');
     } finally {
       setLoading(false);
     }
@@ -125,8 +126,8 @@ export default function Purchases() {
     try {
       const { data } = await api.get('/parties');
       setParties(data.filter((p: Party) => p.type === 'SUPPLIER' || p.type === 'BOTH'));
-    } catch (error) {
-      console.error('Failed to fetch parties', error);
+    } catch (error: any) {
+      handleError(error, 'Failed to load suppliers');
     }
   };
 
@@ -160,7 +161,7 @@ export default function Purchases() {
       setSelectedPurchase(null);      
       await fetchPurchases();    
     } catch (error: any) {      
-      showToast(error.response?.data?.message || 'Failed to update status', 'error');    
+      handleError(error, 'Failed to update status');    
     }  
   };
 
@@ -197,20 +198,18 @@ export default function Purchases() {
           }
         : basePayload;
       if (editingPurchase) {
-        await api.put(`/purchases/${editingPurchase.id}`, payload);
-        showToast('Purchase updated successfully');
+      await api.put(`/purchases/${editingPurchase.id}`, payload);
+        showToast('Purchase updated successfully', 'success');
       } else {
         await api.post('/purchases', payload);
-        showToast('Purchase created successfully');
+        showToast('Purchase created successfully', 'success');
       }
       reset();
       setEditingPurchase(null);
       setShowForm(false);
       await fetchPurchases();
     } catch (error: any) {
-      console.error('Failed to save purchase', error);
-      const errorMessage = error.response?.data?.message || error.message || `Failed to ${editingPurchase ? 'update' : 'create'} purchase`;
-      showToast(errorMessage, 'error');
+      handleError(error, `Failed to ${editingPurchase ? 'update' : 'create'} purchase`);
     } finally {
       setIsSubmitting(false);
     }

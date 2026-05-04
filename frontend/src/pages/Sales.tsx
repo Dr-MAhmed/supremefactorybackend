@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useApiError } from '../hooks/useApiError';
 import api from '../lib/api';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,6 +58,7 @@ export default function Sales() {
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const { handleError } = useApiError();
   const { showToast } = useToast();
   const { canEdit } = usePermissions();
 
@@ -98,12 +100,7 @@ export default function Sales() {
       const { data } = await api.get('/sales');
       setSales(data);
     } catch (error: any) {
-      console.error('Failed to fetch sales', error);
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        showToast('Session expired. Please login again.', 'error');
-      } else {
-        showToast('Failed to load sales data', 'error');
-      }
+      handleError(error, 'Failed to load sales');
     } finally {
       setLoading(false);
     }
@@ -114,8 +111,7 @@ export default function Sales() {
       const { data } = await api.get('/parties');
       setParties(data);
     } catch (error: any) {
-      console.error('Failed to fetch parties', error);
-      showToast('Failed to load customers', 'error');
+      handleError(error, 'Failed to load customers');
     }
   };
 
@@ -183,9 +179,7 @@ export default function Sales() {
       reset();
       fetchSales();
     } catch (error: any) {
-      console.error('Failed to save sale', error);
-      const errorMessage = error.response?.data?.message || error.message || `Failed to ${editingSale ? 'update' : 'create'} sale`;
-      showToast(errorMessage, 'error');
+      handleError(error, `Failed to ${editingSale ? 'update' : 'create'} sale`);
     }
   };
 

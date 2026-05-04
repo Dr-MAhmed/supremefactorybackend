@@ -1,10 +1,19 @@
-# TODO: Add Status Change Option in Purchases
+# Error Handling with Toast Notifications - Implementation Plan
 
-## Steps:
-- [x] Step 1: Create backend PATCH endpoint `/purchases/:id/status` in `backend/src/routes/purchases.ts`
-- [x] Step 2: Add frontend UI (modal + button) in `frontend/src/pages/Purchases.tsx`"
+## Completed (4/9)
+1. ✅ Read backend routes (purchases.ts, sales.ts) - Analyze error handling
+2. ✅ Create frontend/src/hooks/useApiError.ts - Global error handler hook  
+3. ✅ Update frontend/src/pages/Purchases.tsx - Standardize catch blocks + add missing toasts
+4. ✅ Update frontend/src/pages/Sales.tsx - Standardize catch blocks, remove console.error
 
-- [ ] Step 3: Test status changes end-to-end
-- [ ] Step 4: Mark complete
+## Pending Steps
+5. Update backend/src/routes/purchases.ts - Ensure asyncHandler + error middleware (No changes needed - already perfect)
+6. Update backend/src/routes/sales.ts - Ensure asyncHandler + error middleware (No changes needed - already perfect)
+7. Test frontend errors (network, 4xx, 5xx) - Verify toasts
+8. Test backend (Prisma errors, validation) - Verify JSON responses  
+9. Generalize to other pages (Accounts, Parties, etc.) if needed
 
-✅ Task complete: Status change option added to Purchases page with UI button/modal and backend PATCH /purchases/:id/status endpoint. Frontend uses Dialog/Select (shimmed if needed). Test by creating a purchase, clicking Status button, changing to PAID/PARTIAL/UNPAID.
+**Progress**: 4/9 complete
+**Next**: Backend routes confirmed good, ready for testing"
+
+
