@@ -153,11 +153,29 @@ export default function Purchases() {
   const onSubmit = async (values: PurchaseFormValues) => {
     setIsSubmitting(true);
     try {
-      const payload = {
+      // Recalculate item amounts and totals based on submitted values
+      const itemsWithAmount = values.items.map((item) => ({
+        ...item,
+        amount: (item.quantity || 0) * (item.rate || 0)
+      }));
+      const subtotal = itemsWithAmount.reduce((sum, item) => sum + (item.amount || 0), 0);
+      const total = subtotal - (values.discount || 0) + (values.tax || 0);
+      // Build payload for create or update
+      const basePayload = {
         ...values,
-        subtotal: watchedItems.reduce((sum, item) => sum + (item.amount || 0), 0),
-        total: watchedItems.reduce((sum, item) => sum + (item.amount || 0), 0) - (values.discount || 0) + (values.tax || 0)
+        items: itemsWithAmount,
+        subtotal,
+        total
       };
+      const payload = editingPurchase
+        ? {
+            ...basePayload,
+            // Preserve fields that aren't edited via the form but required by the API
+            voucherNo: editingPurchase.voucherNo,
+            date: editingPurchase.date,
+            paymentStatus: editingPurchase.paymentStatus
+          }
+        : basePayload;
       if (editingPurchase) {
         await api.put(`/purchases/${editingPurchase.id}`, payload);
         showToast('Purchase updated successfully');
