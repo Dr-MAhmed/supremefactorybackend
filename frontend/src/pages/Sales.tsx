@@ -8,7 +8,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import ViewOnlyNotice from '../components/ViewOnlyNotice';
 
 const saleSchema = z.object({
-  invoiceNo: z.string().min(1, 'Invoice number is required'),
+  invoiceNo: z.string().optional(),
   date: z.string().min(1, 'Date is required'),
   partyId: z.string().min(1, 'Customer is required'),
   dueDate: z.string().min(1, 'Due date is required'),
@@ -221,11 +221,18 @@ export default function Sales() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Invoice No</label>
-                <input
-                  {...register('invoiceNo')}
-                  type="text"
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    {...register('invoiceNo')}
+                    type="text"
+                    readOnly={!editingSale}
+                    className={`mt-1 w-full rounded-2xl border px-4 py-2 text-sm ${editingSale ? 'border-slate-200' : 'border-slate-300 bg-slate-50 cursor-not-allowed'}`}
+                    placeholder={editingSale ? '' : 'Auto-generated on save'}
+                  />
+                  {!editingSale && (
+                    <span className="text-xs text-slate-500">(Auto)</span>
+                  )}
+                </div>
                 {errors.invoiceNo && <p className="mt-1 text-sm text-red-600">{errors.invoiceNo.message}</p>}
               </div>
               <div>

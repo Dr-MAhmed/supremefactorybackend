@@ -15,7 +15,7 @@ const saleItemSchema = z.object({
   amount: z.number().nonnegative()
 });
 const saleSchema = z.object({
-  invoiceNo: z.string().min(1),
+  invoiceNo: z.string().optional(),
   date: z.string().min(1),
   partyId: z.string().min(1),
   dueDate: z.string().min(1),
@@ -94,9 +94,16 @@ router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest,
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot create sales', 403);
 
+  let finalInvoiceNo = invoiceNo;
+  if (!finalInvoiceNo) {
+    const lastSale = await prisma.sale.findFirst({ orderBy: { createdAt: 'desc' } });
+    const lastNum = lastSale ? parseInt(lastSale.invoiceNo.split('-')[2]) : 0;
+    finalInvoiceNo = `SALE-${new Date().getFullYear()}-${String(lastNum + 1).padStart(5, '0')}`;
+  }
+
   const sale = await prisma.sale.create({
     data: {
-      invoiceNo,
+      invoiceNo: finalInvoiceNo,
       date: new Date(date),
       partyId,
       subtotal,
@@ -113,7 +120,7 @@ router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest,
   });
 
   res.status(201).json(sale);
-}));
+})); 
 
 router.put('/:id', validateParams(saleParamsSchema), validateBody(saleUpdateSchema), asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
