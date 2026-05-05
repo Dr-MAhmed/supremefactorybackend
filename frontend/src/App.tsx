@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import Accounts from './pages/Accounts';
 import Parties from './pages/Parties';
 import Purchases from './pages/Purchases';
+import PurchaseReturns from './pages/PurchaseReturns';
 import Sales from './pages/Sales';
 import Vouchers from './pages/Vouchers';
 import Ledger from './pages/Ledger';
@@ -49,6 +50,7 @@ function App() {
           <Route path="accounts" element={<Accounts />} />
           <Route path="parties" element={<Parties />} />
           <Route path="purchases" element={<Purchases />} />
+          <Route path="purchase-returns" element={<PurchaseReturns />} />
           <Route path="sales" element={<Sales />} />
           <Route path="vouchers" element={<Vouchers />} />
           <Route path="ledger" element={<Ledger />} />
