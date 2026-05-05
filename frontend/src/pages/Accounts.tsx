@@ -105,13 +105,13 @@ export default function Accounts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Chart of Accounts</h1>
+          <h1 className="text-2xl font-bold text-navy">Chart of Accounts</h1>
           <p className="mt-1 text-sm text-slate-500">Manage all ledger accounts</p>
         </div>
         {canEdit ? (
           <button
             onClick={() => editingAccount ? cancelEdit() : setShowForm(!showForm)}
-            className="rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752]"
+            className="btn-primary"
           >
             {editingAccount ? 'Cancel Edit' : showForm ? 'Cancel' : 'New Account'}
           </button>
@@ -121,92 +121,160 @@ export default function Accounts() {
       </div>
 
       {canEdit && showForm && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-slate-900">
+        <div className="stat-card">
+          <h2 className="mb-6 text-xl font-semibold text-navy">
             {editingAccount ? 'Edit Account' : 'Create New Account'}
           </h2>
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4"
+            className="space-y-6"
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Account Code</label>
                 <input
                   type="text"
-                  placeholder="Account Code"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  placeholder="e.g., 1000"
+                  className={`input-field ${errors.code ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : ''}`}
                   {...register('code')}
                 />
-                {errors.code && <p className="mt-1 text-xs text-rose-600">{errors.code.message}</p>}
+                {errors.code && (
+                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-600">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v4M12 16h.01" />
+                    </svg>
+                    {errors.code.message}
+                  </p>
+                )}
               </div>
               <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Account Name</label>
                 <input
                   type="text"
-                  placeholder="Account Name"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  placeholder="e.g., Cash Account"
+                  className={`input-field ${errors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : ''}`}
                   {...register('name')}
                 />
-                {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name.message}</p>}
+                {errors.name && (
+                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-600">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v4M12 16h.01" />
+                    </svg>
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
-              <select className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" {...register('type')}>
-                <option value="ASSET">ASSET</option>
-                <option value="LIABILITY">LIABILITY</option>
-                <option value="EQUITY">EQUITY</option>
-                <option value="REVENUE">REVENUE</option>
-                <option value="EXPENSE">EXPENSE</option>
-              </select>
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Account Type</label>
+                <select
+                  className="input-field"
+                  {...register('type')}
+                >
+                  <option value="ASSET">ASSET - Assets</option>
+                  <option value="LIABILITY">LIABILITY - Liabilities</option>
+                  <option value="EQUITY">EQUITY - Equity</option>
+                  <option value="REVENUE">REVENUE - Revenue</option>
+                  <option value="EXPENSE">EXPENSE - Expenses</option>
+                </select>
+              </div>
             </div>
             <button
               disabled={isSubmitting}
-              className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752] disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn-primary w-full"
             >
-              {isSubmitting ? (editingAccount ? 'Updating Account...' : 'Creating Account...') : (editingAccount ? 'Update Account' : 'Create Account')}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" strokeDasharray="32" />
+                  </svg>
+                  {editingAccount ? 'Updating Account...' : 'Creating Account...'}
+                </span>
+              ) : (
+                editingAccount ? 'Update Account' : 'Create Account'
+              )}
             </button>
           </form>
         </div>
       )}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="stat-card overflow-hidden p-0">
         {loading ? (
-          <p className="p-6 text-center text-slate-500">Loading...</p>
+          <div className="flex min-h-[300px] items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-navy/20 border-t-navy"></div>
+              <p className="text-slate-500">Loading accounts...</p>
+            </div>
+          </div>
         ) : accounts.length === 0 ? (
-          <p className="p-6 text-center text-slate-500">No accounts yet</p>
+          <div className="flex min-h-[300px] flex-col items-center justify-center text-center p-8">
+            <svg className="mb-4 h-16 w-16 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <p className="text-slate-500">No accounts yet</p>
+            {canEdit && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="mt-4 btn-primary"
+              >
+                Create Your First Account
+              </button>
+            )}
+          </div>
         ) : (
-          <table className="w-full">
-            <thead className="border-b border-slate-200 bg-slate-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Code</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Status</th>
-                {canEdit && <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {accounts.map((a) => (
-                <tr key={a.id} className="border-b border-slate-200 hover:bg-slate-50">
-                  <td className="px-6 py-4 text-sm font-medium text-navy">{a.code}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{a.name}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{a.type}</td>
-                  <td>
-                    <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${a.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {a.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  {canEdit && (
-                    <td className="px-6 py-4 text-sm">
-                      <button
-                        onClick={() => editAccount(a)}
-                        className="text-navy hover:text-blue-700 font-medium"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/50">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Code</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Type</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                    {canEdit && <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {accounts.map((a) => (
+                    <tr key={a.id} className="transition-colors hover:bg-slate-50">
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-navy">{a.code}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-700">{a.name}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                          {a.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                          a.isActive 
+                            ? 'bg-emerald-50 text-emerald-700' 
+                            : 'bg-rose-50 text-rose-700'
+                        }`}>
+                          <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                            a.isActive ? 'bg-emerald-500' : 'bg-rose-500'
+                          }`}></span>
+                          {a.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      {canEdit && (
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => editAccount(a)}
+                            className="rounded-lg px-3 py-1.5 text-sm font-medium text-navy hover:bg-navy/5 transition-colors"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
