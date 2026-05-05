@@ -7,6 +7,7 @@ import Parties from './pages/Parties';
 import Purchases from './pages/Purchases';
 import PurchaseReturns from './pages/PurchaseReturns';
 import Sales from './pages/Sales';
+import SaleReturns from './pages/SaleReturns';
 import Vouchers from './pages/Vouchers';
 import Ledger from './pages/Ledger';
 import Reports from './pages/Reports';
@@ -52,6 +53,7 @@ function App() {
           <Route path="purchases" element={<Purchases />} />
           <Route path="purchase-returns" element={<PurchaseReturns />} />
           <Route path="sales" element={<Sales />} />
+          <Route path="sale-returns" element={<SaleReturns />} />
           <Route path="vouchers" element={<Vouchers />} />
           <Route path="ledger" element={<Ledger />} />
           <Route path="reports" element={<Reports />} />
