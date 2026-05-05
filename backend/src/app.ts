@@ -13,7 +13,8 @@ import saleReturnsRoutes from './routes/saleReturns';
 import vouchersRoutes from './routes/vouchers';
 import ledgerRoutes from './routes/ledger';
 import dashboardRoutes from './routes/dashboard';
-import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import reportsRoutes from './routes/reports';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler'; 
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/v1/sale-returns', saleReturnsRoutes);
 app.use('/api/v1/vouchers', vouchersRoutes);
 app.use('/api/v1/ledger', ledgerRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/reports', reportsRoutes);
 
 app.get('/api/v1/health', (_req, res) => {
   res.json({ status: 'ok', service: 'supreme-cotton-backend' });

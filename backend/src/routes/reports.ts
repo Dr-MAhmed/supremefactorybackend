@@ -171,21 +171,30 @@ router.get('/sales', validateQuery(dateRangeQuerySchema), asyncHandler(async (re
     if (endDate) where.date.lte = new Date(endDate as string);
   }
 
-  const sales = await prisma.sale.findMany({
+let sales = await prisma.sale.findMany({
     where,
     include: { party: true, items: true }
   });
 
-  const totalSales = sales.reduce((sum: number, s: any) => sum + s.total, 0);
+  // Log bad totals but include all
+  const badThreshold = 1e10;
+  const badSales = sales.filter((s: any) => !Number.isFinite(s.total) || s.total <= 0 || s.total >= badThreshold);
+  if (badSales.length > 0) {
+    console.warn(`Found ${badSales.length} questionable sales records:`, badSales.map((s: any) => ({id: s.id, total: s.total})));
+  }
+
+  const totalSales = sales.reduce((sum: number, s: any) => sum + Number(s.total || 0), 0);
   const byCustomer = new Map<string, number>();
 
   sales.forEach((s: any) => {
-    byCustomer.set(s.party.name, (byCustomer.get(s.party.name) || 0) + s.total);
+    byCustomer.set(s.party.name, (byCustomer.get(s.party.name) || 0) + Number(s.total || 0));
   });
 
   res.json({
     totalSales,
     count: sales.length,
+    totalRecords: sales.length,
+    badRecords: badSales.length,
     byCustomer: Array.from(byCustomer.entries()).map(([name, amount]) => ({ name, amount }))
   });
 }));
@@ -201,21 +210,29 @@ router.get('/purchases', validateQuery(dateRangeQuerySchema), asyncHandler(async
     if (endDate) where.date.lte = new Date(endDate as string);
   }
 
-  const purchases = await prisma.purchase.findMany({
+let purchases = await prisma.purchase.findMany({
     where,
     include: { party: true, items: true }
   });
 
-  const totalPurchases = purchases.reduce((sum: number, p: any) => sum + p.total, 0);
+  // Log bad totals but include all
+  const badThreshold = 1e10;
+  const badPurchases = purchases.filter((p: any) => !Number.isFinite(p.total) || p.total <= 0 || p.total >= badThreshold);
+  if (badPurchases.length > 0) {
+    console.warn(`Found ${badPurchases.length} questionable purchase records:`, badPurchases.map((p: any) => ({id: p.id, total: p.total})));
+  }
+
+  const totalPurchases = purchases.reduce((sum: number, p: any) => sum + Number(p.total || 0), 0);
   const bySupplier = new Map<string, number>();
 
   purchases.forEach((p: any) => {
-    bySupplier.set(p.party.name, (bySupplier.get(p.party.name) || 0) + p.total);
+    bySupplier.set(p.party.name, (bySupplier.get(p.party.name) || 0) + Number(p.total || 0));
   });
 
   res.json({
     totalPurchases,
-    count: purchases.length,
+    totalRecords: purchases.length,
+    badRecords: badPurchases.length,
     bySupplier: Array.from(bySupplier.entries()).map(([name, amount]) => ({ name, amount }))
   });
 }));

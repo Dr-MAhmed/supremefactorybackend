@@ -84,7 +84,8 @@ router.get('/:id', validateParams(purchaseParamsSchema), asyncHandler(async (req
 }));
 
 router.post('/', validateBody(purchaseSchema), asyncHandler(async (req: AuthRequest, res) => {
-  const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
+  const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, remarks } = req.body;
+  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot create purchases', 403);
@@ -109,7 +110,7 @@ router.post('/', validateBody(purchaseSchema), asyncHandler(async (req: AuthRequ
       subtotal,
       discount,
       tax,
-      total,
+      total: calculatedTotal,
       paidAmount: 0,
       paymentStatus: 'UNPAID',
       remarks,
@@ -127,14 +128,15 @@ router.put('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseUp
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update purchases', 403);
   
-  const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
+  const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, remarks } = req.body;
+  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
   const updateData: any = {
     partyId,
     supplierInvoiceNo,
     subtotal,
     discount,
     tax,
-    total,
+    total: calculatedTotal,
     remarks
   };
   if (items) {
@@ -158,13 +160,14 @@ router.patch('/:id', validateParams(purchaseParamsSchema), validateBody(purchase
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update purchases', 403);
   
-  const { supplierInvoiceNo, items, subtotal, discount, tax, total, remarks } = req.body;
+  const { supplierInvoiceNo, items, subtotal, discount, tax, remarks } = req.body;
+  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
   const updateData: any = {
     supplierInvoiceNo,
     subtotal,
     discount,
     tax,
-    total,
+    total: calculatedTotal,
     remarks
   };
   if (items) {

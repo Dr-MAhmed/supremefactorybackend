@@ -6,14 +6,17 @@ export default function Reports() {
   const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  
   useEffect(() => {
     fetchReport(activeTab);
   }, [activeTab]);
 
+  
   const fetchReport = async (reportType: string) => {
     setLoading(true);
     try {
-      const { data } = await api.get(`/reports/${reportType}`);
+      const params: any = {};
+      const { data } = await api.get(`/reports/${reportType}`, { params });
       setReportData(data);
     } catch (error) {
       console.error(`Failed to fetch ${reportType} report`, error);
@@ -54,6 +57,15 @@ export default function Reports() {
             </button>
           ))}
         </div>
+        {(activeTab === 'sales' || activeTab === 'purchases') && (
+          <div className="p-4 border-b border-slate-200">
+            {reportData && (
+              <div className="text-xs text-slate-500 mb-4">
+                Showing all records • Records: {reportData.totalRecords || 0} | Bad: {reportData.badRecords || 0}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="p-6">
           {loading ? (

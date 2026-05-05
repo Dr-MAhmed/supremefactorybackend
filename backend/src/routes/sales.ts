@@ -89,7 +89,8 @@ router.get('/:id', validateParams(saleParamsSchema), asyncHandler(async (req, re
 }));
 
 router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest, res) => {
-  const { invoiceNo, date, partyId, dueDate, discount, tax, subtotal, total, items } = req.body;
+  const { invoiceNo, date, partyId, dueDate, discount, tax, subtotal, items } = req.body;
+  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot create sales', 403);
@@ -109,7 +110,7 @@ router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest,
       subtotal,
       discount,
       tax,
-      total,
+      total: calculatedTotal,
       receivedAmount: 0,
       paymentStatus: 'UNPAID',
       dueDate: dueDate ? new Date(dueDate) : undefined,
@@ -127,7 +128,8 @@ router.put('/:id', validateParams(saleParamsSchema), validateBody(saleUpdateSche
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update sales', 403);
   
-  const { invoiceNo, date, partyId, dueDate, customerPo, salesperson, items, subtotal, discount, tax, total, remarks } = req.body;
+  const { invoiceNo, date, partyId, dueDate, customerPo, salesperson, items, subtotal, discount, tax, remarks } = req.body;
+  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
   const updateData: any = {
     invoiceNo,
     date: date ? new Date(date) : undefined,
@@ -138,7 +140,7 @@ router.put('/:id', validateParams(saleParamsSchema), validateBody(saleUpdateSche
     subtotal,
     discount,
     tax,
-    total,
+    total: calculatedTotal,
     remarks
   };
   if (items) {
@@ -162,14 +164,15 @@ router.patch('/:id', validateParams(saleParamsSchema), validateBody(saleSchema.p
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update sales', 403);
   
-  const { customerPo, salesperson, items, subtotal, discount, tax, total, dueDate, remarks } = req.body;
+  const { customerPo, salesperson, items, subtotal, discount, tax, dueDate, remarks } = req.body;
+  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
   const updateData: any = {
     customerPo,
     salesperson,
     subtotal,
     discount,
     tax,
-    total,
+    total: calculatedTotal,
     dueDate: dueDate ? new Date(dueDate) : undefined,
     remarks
   };
