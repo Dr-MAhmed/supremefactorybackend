@@ -5,6 +5,8 @@ import prisma from '../prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
+import { validateBody } from '../middleware/validate';
+
 
 const router = Router();
 
@@ -24,6 +26,42 @@ const updateUserSchema = z.object({
 });
 
 router.use(authenticate);
+
+// POST /users/change-password - Change current user's password
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters')
+});
+
+// POST /users/change-password - Change current user's password
+router.post('/change-password', validateBody(changePasswordSchema), asyncHandler(async (req: AuthRequest, res) => {
+  const authUser = (req as AuthRequest).user;
+  if (!authUser) return res.status(401).json({ message: 'Unauthorized' });
+
+  const { currentPassword, newPassword } = req.body;
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: authUser.userId },
+    select: { id: true, passwordHash: true, isActive: true }
+  });
+
+  if (!currentUser || !currentUser.isActive) {
+    throw new AppError('Unauthorized', 401);
+  }
+
+  const valid = await bcrypt.compare(currentPassword, currentUser.passwordHash);
+  if (!valid) {
+    throw new AppError('Current password is incorrect', 400);
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({
+    where: { id: currentUser.id },
+    data: { passwordHash }
+  });
+
+  res.json({ message: 'Password updated successfully' });
+}));
 
 // GET /users - List all users (admin only)
 router.get('/', asyncHandler(async (req: AuthRequest, res) => {
@@ -157,8 +195,39 @@ router.patch('/:id', asyncHandler(async (req: AuthRequest, res) => {
   res.json(updatedUser);
 }));
 
+// POST /users/change-password - Change current user's password
+router.post('/change-password', validateBody(changePasswordSchema), asyncHandler(async (req: AuthRequest, res) => {
+  const authUser = (req as AuthRequest).user;
+  if (!authUser) return res.status(401).json({ message: 'Unauthorized' });
+
+  const { currentPassword, newPassword } = req.body;
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: authUser.userId },
+    select: { id: true, passwordHash: true, isActive: true }
+  });
+
+  if (!currentUser || !currentUser.isActive) {
+    throw new AppError('Unauthorized', 401);
+  }
+
+  const valid = await bcrypt.compare(currentPassword, currentUser.passwordHash);
+  if (!valid) {
+    throw new AppError('Current password is incorrect', 400);
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({
+    where: { id: currentUser.id },
+    data: { passwordHash }
+  });
+
+  res.json({ message: 'Password updated successfully' });
+}));
+
 // DELETE /users/:id - Deactivate user (admin only)
 router.delete('/:id', asyncHandler(async (req: AuthRequest, res) => {
+
   const user = (req as AuthRequest).user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (user.role !== 'ADMIN') throw new AppError('Only admins can delete users', 403);

@@ -1,8 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import api from '../lib/api';
 import { useAuth } from '../components/AuthContext';
+import { useToast } from '../components/ToastProvider';
 import { useNavigate } from 'react-router-dom';
 
 export default function Settings() {
+
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Supreme Cotton',
     address: 'Faisalabad, Pakistan',
@@ -12,6 +21,7 @@ export default function Settings() {
   });
 
   const [editMode, setEditMode] = useState(false);
+  const { showToast } = useToast();
   const { logout } = useAuth();
   const navigate = useNavigate();
   
@@ -131,22 +141,119 @@ export default function Settings() {
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Account Settings</h2>
+
         <div className="space-y-3">
-          <button className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-            Change Password
-          </button>
-          <button
-          onClick={() => navigate('/users')}
-          className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-            Manage Users
-          </button>
-          <button
-          onClick={handleLogout}
-           className="w-full rounded-2xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">
-            Sign Out
-          </button>
+          {!showChangePassword ? (
+            <>
+              <button
+                onClick={() => setShowChangePassword(true)}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Change Password
+              </button>
+              <button
+                onClick={() => navigate('/users')}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Manage Users
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full rounded-2xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+
+                if (newPassword !== confirmPassword) {
+                  showToast('New password and confirmation do not match', 'error');
+                  return;
+                }
+
+                try {
+                  setChangingPassword(true);
+
+
+                  await api.post('/users/change-password', {
+                    currentPassword,
+                    newPassword
+                  });
+
+                  showToast('Password updated successfully', 'success');
+                  setShowChangePassword(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                } catch (err: any) {
+                  showToast(err?.response?.data?.message || 'Failed to update password', 'error');
+                } finally {
+                  setChangingPassword(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold text-slate-900">Change Password</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowChangePassword(false)}
+                  className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Current Password</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  minLength={6}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  minLength={6}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={changingPassword}
+                className="w-full rounded-2xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#163752] disabled:opacity-60"
+              >
+                {changingPassword ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
+
     </div>
   );
 }
