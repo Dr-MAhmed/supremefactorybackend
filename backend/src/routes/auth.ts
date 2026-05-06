@@ -33,8 +33,15 @@ router.post('/login', asyncHandler(async (req, res) => {
     expiresIn: '7d'
   });
 
+  // Update last login on successful authentication
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLogin: new Date() }
+  });
+
   return res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 }));
+
 
 const refreshSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required')
