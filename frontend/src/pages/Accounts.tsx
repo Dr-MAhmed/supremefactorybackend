@@ -78,6 +78,21 @@ export default function Accounts() {
     setShowForm(false);
   };
 
+  const toggleAccountStatus = async (account: Account) => {
+    try {
+      await api.patch(`/accounts/${account.id}/status`, { isActive: !account.isActive });
+      showToast('Account status updated successfully', 'success');
+      await fetchAccounts();
+      if (editingAccount?.id === account.id) {
+        setEditingAccount({ ...account, isActive: !account.isActive });
+      }
+    } catch (error: any) {
+      console.error('Failed to update account status', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update account status';
+      showToast(errorMessage, 'error');
+    }
+  };
+
   const onSubmit = async (values: AccountFormValues) => {
     setIsSubmitting(true);
     try {
@@ -261,12 +276,24 @@ export default function Accounts() {
                       </td>
                       {canEdit && (
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => editAccount(a)}
-                            className="rounded-lg px-3 py-1.5 text-sm font-medium text-navy hover:bg-navy/5 transition-colors"
-                          >
-                            Edit
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => toggleAccountStatus(a)}
+                              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                                a.isActive
+                                  ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              }`}
+                            >
+                              {a.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button
+                              onClick={() => editAccount(a)}
+                              className="rounded-lg px-3 py-1.5 text-sm font-medium text-navy hover:bg-navy/5 transition-colors"
+                            >
+                              Edit
+                            </button>
+                          </div>
                         </td>
                       )}
                     </tr>

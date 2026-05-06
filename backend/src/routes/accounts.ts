@@ -17,7 +17,7 @@ const accountSchema = z.object({
 router.use(authenticate);
 
 router.get('/', asyncHandler(async (_req, res) => {
-  const accounts = await prisma.account.findMany({ where: { isActive: true }, orderBy: { code: 'asc' } });
+  const accounts = await prisma.account.findMany({ orderBy: { code: 'asc' } });
   res.json(accounts);
 }));
 
@@ -51,13 +51,31 @@ router.delete('/:id', asyncHandler(async (req: AuthRequest, res) => {
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role !== 'ADMIN') throw new AppError('Only admins can delete accounts', 403);
-  
+
   const { id } = req.params;
   await prisma.account.update({
     where: { id },
     data: { isActive: false }
   });
   res.status(204).send();
+}));
+
+router.patch('/:id/status', validateBody(z.object({
+  isActive: z.boolean()
+})), asyncHandler(async (req: AuthRequest, res) => {
+  const user = (req as AuthRequest).user;
+  if (!user) throw new AppError('Unauthorized', 401);
+  if (user.role === 'VIEWER') throw new AppError('Viewers cannot change account status', 403);
+
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  const account = await prisma.account.update({
+    where: { id },
+    data: { isActive }
+  });
+
+  res.json(account);
 }));
 
 export default router;
