@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { useAuth } from '../components/AuthContext';
-import { useToast } from '../components/ToastProvider';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -12,6 +11,10 @@ const loginSchema = z.object({
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
+
+function showToast(message: any, arg1: string) {
+  throw new Error('Function not implemented.');
+}
 
 export default function Login() {
   const navigate = useNavigate();
@@ -173,3 +176,5 @@ export default function Login() {
     </div>
   );
 }
+
+

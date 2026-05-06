@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../components/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Settings() {
   const [companyInfo, setCompanyInfo] = useState({
@@ -10,10 +12,18 @@ export default function Settings() {
   });
 
   const [editMode, setEditMode] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  
 
   const handleSave = () => {
     console.log('Company info saved', companyInfo);
     setEditMode(false);
+  };
+
+   const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -125,10 +135,14 @@ export default function Settings() {
           <button className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
             Change Password
           </button>
-          <button className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+          <button
+          onClick={() => navigate('/users')}
+          className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
             Manage Users
           </button>
-          <button className="w-full rounded-2xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">
+          <button
+          onClick={handleLogout}
+           className="w-full rounded-2xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">
             Sign Out
           </button>
         </div>
