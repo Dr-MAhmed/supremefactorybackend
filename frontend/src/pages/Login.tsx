@@ -43,7 +43,7 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50">
+    <div className="relative min-h-screen overflow-x-hidden bg-slate-50">
       {/* Background Pattern */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
@@ -55,7 +55,7 @@ export default function Login() {
       <div className="absolute -right-20 top-40 h-64 w-64 rounded-full bg-emerald-500/5 blur-3xl"></div>
       <div className="absolute bottom-20 left-1/3 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl"></div>
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4 pt-28">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="mb-8 text-center">
