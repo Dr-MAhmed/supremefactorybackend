@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const navItems = [
   { label: 'Dashboard', path: '/' },
@@ -24,6 +25,7 @@ export default function Layout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -35,16 +37,16 @@ export default function Layout() {
     : navItems;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen dark:bg-slate-900">
       {/* Background Pattern */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] dark:bg-[linear-gradient(to_right,rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.05)_1px,transparent_1px)]"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"></div>
       </div>
 
       <div className="relative z-10 flex min-h-screen">
         {/* Sidebar - Desktop */}
-        <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white/80 p-6 backdrop-blur-xl md:flex">
+        <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white/80 p-6 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-800/80 md:flex">
           <div className="mb-8">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-navy to-slate-700 text-white shadow-lg shadow-navy/20">
@@ -53,13 +55,13 @@ export default function Layout() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-navy">Supreme Cotton</h1>
-                <p className="text-xs text-slate-500">Ledger & Accounting</p>
+                <h1 className="text-xl font-bold text-navy dark:text-white">Supreme Cotton</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Ledger & Accounting</p>
               </div>
             </div>
           </div>
           
-          <nav className="space-y-1.5 text-sm font-medium text-slate-700">
+          <nav className="space-y-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
             {displayNavItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -68,7 +70,7 @@ export default function Layout() {
                   `group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 ${
                     isActive 
                       ? 'bg-gradient-to-r from-navy to-slate-700 text-white shadow-lg shadow-navy/20' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-navy'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-navy dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white'
                   }`
                 }
               >
@@ -91,11 +93,11 @@ export default function Layout() {
             ))}
           </nav>
           
-          <div className="mt-auto border-t border-slate-200 pt-4">
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="font-medium text-navy">{user?.name}</p>
-              <p className="text-xs text-slate-500">{user?.email}</p>
-              <p className="mt-2 inline-block rounded-full bg-navy/10 px-2 py-1 text-xs font-semibold text-navy">
+          <div className="mt-auto border-t border-slate-200 pt-4 dark:border-slate-700">
+            <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-700/50">
+              <p className="font-medium text-navy dark:text-white">{user?.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
+              <p className="mt-2 inline-block rounded-full bg-navy/10 px-2 py-1 text-xs font-semibold text-navy dark:bg-navy/30 dark:text-white">
                 {user?.role}
               </p>
             </div>
@@ -114,7 +116,7 @@ export default function Layout() {
 
         {/* Sidebar - Mobile */}
         <aside
-          className={`fixed left-0 top-0 z-40 flex h-full w-72 flex-col border-r border-slate-200 bg-white/95 p-6 backdrop-blur-xl transition-transform duration-300 md:hidden ${
+          className={`fixed left-0 top-0 z-40 flex h-full w-72 flex-col border-r border-slate-200 bg-white/95 p-6 backdrop-blur-xl transition-transform duration-300 dark:border-slate-700 dark:bg-slate-800/95 md:hidden ${
             isMobileNavOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -126,20 +128,20 @@ export default function Layout() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-navy">Supreme Cotton</h1>
-                <p className="text-xs text-slate-500">Ledger & Accounting</p>
+                <h1 className="text-xl font-bold text-navy dark:text-white">Supreme Cotton</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Ledger & Accounting</p>
               </div>
             </div>
             <button
               type="button"
-              className="rounded-xl bg-slate-100 p-2 text-slate-500 hover:bg-slate-200"
+              className="rounded-xl bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600"
               onClick={() => setIsMobileNavOpen(false)}
             >
               ✕
             </button>
           </div>
           
-          <nav className="space-y-1.5 text-sm font-medium text-slate-700">
+          <nav className="space-y-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
             {displayNavItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -149,7 +151,7 @@ export default function Layout() {
                   `group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 ${
                     isActive 
                       ? 'bg-gradient-to-r from-navy to-slate-700 text-white shadow-lg' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-navy'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-navy dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white'
                   }`
                 }
               >
@@ -172,11 +174,11 @@ export default function Layout() {
             ))}
           </nav>
           
-          <div className="mt-auto border-t border-slate-200 pt-4">
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="font-medium text-navy">{user?.name}</p>
-              <p className="text-xs text-slate-500">{user?.email}</p>
-              <p className="mt-2 inline-block rounded-full bg-navy/10 px-2 py-1 text-xs font-semibold text-navy">
+          <div className="mt-auto border-t border-slate-200 pt-4 dark:border-slate-700">
+            <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-700/50">
+              <p className="font-medium text-navy dark:text-white">{user?.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
+              <p className="mt-2 inline-block rounded-full bg-navy/10 px-2 py-1 text-xs font-semibold text-navy dark:bg-navy/30 dark:text-white">
                 {user?.role}
               </p>
             </div>
@@ -186,11 +188,11 @@ export default function Layout() {
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-8">
           {/* Header */}
-          <header className="mb-6 flex flex-col gap-4 rounded-2xl bg-white/80 p-4 shadow-sm backdrop-blur-xl md:flex-row md:items-center md:justify-between md:p-6">
+          <header className="mb-6 flex flex-col gap-4 rounded-2xl bg-white/80 p-4 shadow-sm backdrop-blur-xl dark:bg-slate-800/80 dark:shadow-dark-card md:flex-row md:items-center md:justify-between md:p-6">
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-navy md:hidden"
+                className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-navy dark:border-slate-700 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 dark:hover:text-white md:hidden"
                 onClick={() => setIsMobileNavOpen(true)}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -198,25 +200,44 @@ export default function Layout() {
                 </svg>
               </button>
               <div>
-                <h1 className="text-xl font-bold text-navy md:text-2xl">Dashboard</h1>
-                <p className="text-sm text-slate-500">Welcome back, {user?.name} <span className="text-navy">({user?.role})</span></p>
+                <h1 className="text-xl font-bold text-navy dark:text-white md:text-2xl">Dashboard</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Welcome back, {user?.name} <span className="text-navy dark:text-white">({user?.role})</span></p>
               </div>
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="hidden items-center gap-3 rounded-xl bg-slate-50 px-4 py-2 md:flex">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-navy dark:border-slate-700 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 dark:hover:text-white"
+                title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {isDark ? (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                  </svg>
+                )}
+                <span className="hidden md:inline">{isDark ? 'Light' : 'Dark'}</span>
+              </button>
+
+              <div className="hidden items-center gap-3 rounded-xl bg-slate-50 px-4 py-2 dark:bg-slate-700/50 md:flex">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
                   <span className="text-sm font-semibold">{user?.name?.charAt(0)}</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-navy">{user?.name}</p>
-                  <p className="text-xs text-slate-500">{user?.email}</p>
+                  <p className="text-sm font-medium text-navy dark:text-white">{user?.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
                 </div>
               </div>
               
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition-all hover:bg-rose-100 hover:shadow-md"
+                className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition-all hover:bg-rose-100 hover:shadow-md dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/40"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />

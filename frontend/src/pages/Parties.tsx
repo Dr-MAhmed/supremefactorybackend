@@ -131,8 +131,8 @@ export default function Parties() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Parties (Customers & Suppliers)</h1>
-          <p className="mt-1 text-sm text-slate-500">Manage customers and suppliers</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Parties (Customers & Suppliers)</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage customers and suppliers</p>
         </div>
         {canEdit ? (
           <button
@@ -147,8 +147,8 @@ export default function Parties() {
       </div>
 
       {canEdit && showForm && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-slate-900">
+        <div className="stat-card">
+          <h2 className="mb-4 text-xl font-semibold text-slate-900 dark:text-white">
             {editingParty ? 'Edit Party' : 'Create New Party'}
           </h2>
           <form
@@ -156,7 +156,7 @@ export default function Parties() {
             className="space-y-4"
           >
             <div className="grid grid-cols-2 gap-4">
-              <select className="rounded-2xl border border-slate-200 px-4 py-2 text-sm" {...register('type')}>
+              <select className="input-field" {...register('type')}>
                 <option value="CUSTOMER">CUSTOMER</option>
                 <option value="SUPPLIER">SUPPLIER</option>
                 <option value="BOTH">BOTH</option>
@@ -165,40 +165,40 @@ export default function Parties() {
                 <input
                   type="text"
                   placeholder="Party Name"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  className="input-field"
                   {...register('name')}
                 />
-                {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name.message}</p>}
+                {errors.name && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.name.message}</p>}
               </div>
               <div>
                 <input
                   type="email"
                   placeholder="Email"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  className="input-field"
                   {...register('email')}
                 />
-                {errors.email && <p className="mt-1 text-xs text-rose-600">{errors.email.message}</p>}
+                {errors.email && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.email.message}</p>}
               </div>
               <input
                 type="text"
                 placeholder="Phone"
-                className="rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                className="input-field"
                 {...register('phone')}
               />
               <input
                 type="text"
                 placeholder="City"
-                className="rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                className="input-field"
                 {...register('city')}
               />
               <div>
                 <input
                   type="number"
                   placeholder="Credit Limit"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  className="input-field"
                   {...register('creditLimit')}
                 />
-                {errors.creditLimit && <p className="mt-1 text-xs text-rose-600">{errors.creditLimit.message}</p>}
+                {errors.creditLimit && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.creditLimit.message}</p>}
               </div>
             </div>
             <button
@@ -211,36 +211,36 @@ export default function Parties() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
         {loading ? (
-          <p className="p-6 text-center text-slate-500">Loading...</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">Loading...</p>
         ) : parties.length === 0 ? (
-          <p className="p-6 text-center text-slate-500">No parties yet</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">No parties yet</p>
         ) : (
           <table className="w-full">
-            <thead className="border-b border-slate-200 bg-slate-50">
+            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-700/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">City</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Phone</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Credit Limit</th>
-                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600">Actions</th>}
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">City</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Phone</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Credit Limit</th>
+                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {parties.map((p) => (
-                <tr key={p.id} className="border-b border-slate-200 hover:bg-slate-50">
-                  <td className="px-6 py-4 text-sm font-medium text-navy">{p.name}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{p.type}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{p.city || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{p.phone || '-'}</td>
-                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{formatCurrency(p.creditLimit)}</td>
+                <tr key={p.id} className="border-b border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/50">
+                  <td className="px-6 py-4 text-sm font-medium text-navy dark:text-white">{p.name}</td>
+                  <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{p.type}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{p.city || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{p.phone || '-'}</td>
+                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(p.creditLimit)}</td>
                   {canEdit && (
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => editParty(p)}
-                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
                       >
                         Edit
                       </button>

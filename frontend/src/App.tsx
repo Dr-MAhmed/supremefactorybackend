@@ -20,7 +20,7 @@ function App() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
       {!isAuthenticated && (
         <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-navy to-slate-700 px-4 py-4 shadow-lg">
           <div className="mx-auto flex max-w-7xl items-center justify-between">

@@ -191,8 +191,8 @@ export default function Sales() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Sales Invoices</h1>
-          <p className="mt-1 text-sm text-slate-500">Create and manage customer invoices</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Sales Invoices</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Create and manage customer invoices</p>
         </div>
         {canEdit ? (
           <button
@@ -207,8 +207,8 @@ export default function Sales() {
       </div>
 
       {canEdit && showForm && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-slate-900">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
+          <h2 className="mb-4 text-xl font-semibold text-slate-900 dark:text-white">
             {editingSale ? 'Edit Sale' : 'Create New Sale'}
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -266,7 +266,7 @@ export default function Sales() {
 
             <div>
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-medium text-slate-900">Items</h3>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white">Items</h3>
                 <button
                   type="button"
                   onClick={() => append({ description: '', quantity: 1, unit: 'kg', rate: 0 })}
@@ -397,32 +397,32 @@ export default function Sales() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
         {loading ? (
-          <p className="p-6 text-center text-slate-500">Loading...</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">Loading...</p>
         ) : sales.length === 0 ? (
-          <p className="p-6 text-center text-slate-500">No sales yet</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">No sales yet</p>
         ) : (
           <table className="w-full">
-            <thead className="border-b border-slate-200 bg-slate-50">
+            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-700/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Invoice #</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Due Date</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Status</th>
-                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600">Actions</th>}
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Invoice #</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Due Date</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Status</th>
+                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {sales.map((s) => (
-                <tr key={s.id} className="border-b border-slate-200 hover:bg-slate-50">
-                  <td className="px-6 py-4 text-sm font-medium text-navy">{s.invoiceNo}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{s.party.name}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{new Date(s.date).toLocaleDateString('en-PK')}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{s.dueDate ? new Date(s.dueDate).toLocaleDateString('en-PK') : '-'}</td>
-                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{formatCurrency(s.total)}</td>
+                <tr key={s.id} className="border-b border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/50">
+                  <td className="px-6 py-4 text-sm font-medium text-navy dark:text-white">{s.invoiceNo}</td>
+                  <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{s.party.name}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{new Date(s.date).toLocaleDateString('en-PK')}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{s.dueDate ? new Date(s.dueDate).toLocaleDateString('en-PK') : '-'}</td>
+                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(s.total)}</td>
                   <td>
                     <span
                       className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${

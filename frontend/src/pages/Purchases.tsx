@@ -223,8 +223,8 @@ export default function Purchases() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Purchase Vouchers</h1>
-          <p className="mt-1 text-sm text-slate-500">Record and manage supplier purchases</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Purchase Vouchers</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Record and manage supplier purchases</p>
         </div>
         {canEdit ? (
           <button
@@ -239,8 +239,8 @@ export default function Purchases() {
       </div>
 
       {canEdit && showForm && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-slate-900">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
+          <h2 className="mb-4 text-xl font-semibold text-slate-900 dark:text-white">
             {editingPurchase ? 'Edit Purchase' : 'Create New Purchase'}
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -270,7 +270,7 @@ export default function Purchases() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-slate-700">Items</h3>
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Items</h3>
                 <button
                   type="button"
                   onClick={() => append({ description: '', quantity: 1, unit: '', rate: 0, amount: 0 })}
@@ -387,30 +387,30 @@ export default function Purchases() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
         {loading ? (
-          <p className="p-6 text-center text-slate-500">Loading...</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">Loading...</p>
         ) : purchases.length === 0 ? (
-          <p className="p-6 text-center text-slate-500">No purchases yet</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">No purchases yet</p>
         ) : (
           <table className="w-full">
-            <thead className="border-b border-slate-200 bg-slate-50">
+            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-700/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Voucher #</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Supplier</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Status</th>
-                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600">Actions</th>}
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Voucher #</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Supplier</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Date</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Status</th>
+                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {purchases.map((p) => (
-                <tr key={p.id} className="border-b border-slate-200 hover:bg-slate-50">
-                  <td className="px-6 py-4 text-sm font-medium text-navy">{p.voucherNo}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{p.party.name}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{new Date(p.date).toLocaleDateString('en-PK')}</td>
-                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{formatCurrency(p.total)}</td>
+                <tr key={p.id} className="border-b border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/50">
+                  <td className="px-6 py-4 text-sm font-medium text-navy dark:text-white">{p.voucherNo}</td>
+                  <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{p.party.name}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{new Date(p.date).toLocaleDateString('en-PK')}</td>
+                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(p.total)}</td>
                   <td>
                     <span
                       className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
@@ -450,9 +450,9 @@ export default function Purchases() {
 
         {showStatusModal && selectedPurchase && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto dark:bg-slate-800 dark:border dark:border-slate-700">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Update Payment Status</h2>
+                <h2 className="text-xl font-semibold dark:text-white">Update Payment Status</h2>
                 <button
                   onClick={() => setShowStatusModal(false)}
                   className="text-slate-400 hover:text-slate-600"
@@ -463,15 +463,15 @@ export default function Purchases() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium">Voucher: {selectedPurchase.voucherNo}</p>
-                  <p className="text-sm text-slate-500">Total: {formatCurrency(selectedPurchase.total)}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Total: {formatCurrency(selectedPurchase.total)}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <label className="block text-sm font-medium mb-2 dark:text-slate-300">Status</label>
                   <div className="relative">
                     <select 
                       onChange={(e) => updateStatus(e.target.value as string)}
                       defaultValue={selectedPurchase.paymentStatus}
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm appearance-none bg-white"
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm appearance-none bg-white dark:border-slate-700 dark:bg-slate-700 dark:text-slate-100"
                     >
                       <option value="UNPAID">Unpaid</option>
                       <option value="PARTIAL">Partial</option>
@@ -483,7 +483,7 @@ export default function Purchases() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Paid Amount</label>
+                  <label className="block text-sm font-medium mb-2 dark:text-slate-300">Paid Amount</label>
                   <input
                     type="number"
                     step="0.01"
@@ -492,7 +492,7 @@ export default function Purchases() {
                       const value = parseFloat(e.target.value) || 0;
                       updateStatus(selectedPurchase.paymentStatus, value);
                     }}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm dark:border-slate-700 dark:bg-slate-700 dark:text-slate-100"
                     placeholder="0.00"
                   />
                 </div>

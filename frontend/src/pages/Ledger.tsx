@@ -71,11 +71,11 @@ export default function Ledger() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Ledger</h1>
-        <p className="mt-1 text-sm text-slate-500">View account and party transactions</p>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Ledger</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">View account and party transactions</p>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
         <div className="mb-4 flex gap-4">
           {['account', 'party'].map((tab) => (
             <button
@@ -85,8 +85,8 @@ export default function Ledger() {
                 setSelectedId('');
                 setEntries([]);
               }}
-              className={`px-4 py-2 text-sm font-medium transition ${
-                activeTab === tab ? 'bg-navy text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                activeTab === tab ? 'bg-navy text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
               }`}
             >
               {tab === 'account' ? 'By Account' : 'By Party'}
@@ -95,11 +95,11 @@ export default function Ledger() {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Select {activeTab === 'account' ? 'Account' : 'Party'}</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Select {activeTab === 'account' ? 'Account' : 'Party'}</label>
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+            className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm dark:border-slate-700 dark:bg-slate-700 dark:text-slate-100"
           >
             <option value="">Select {activeTab === 'account' ? 'Account' : 'Party'}</option>
             {(activeTab === 'account' ? accounts : parties).map((item) => (
@@ -112,42 +112,42 @@ export default function Ledger() {
       </div>
 
       {loading ? (
-        <p className="text-center text-slate-500">Loading ledger...</p>
+        <p className="text-center text-slate-500 dark:text-slate-400">Loading ledger...</p>
       ) : entries.length === 0 ? (
-        <p className="text-center text-slate-500">Select a {activeTab} to view transactions</p>
+        <p className="text-center text-slate-500 dark:text-slate-400">Select a {activeTab} to view transactions</p>
       ) : (
         <>
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
             <table className="w-full">
-              <thead className="border-b border-slate-200 bg-slate-50">
+              <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-700/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Voucher</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Description</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Debit</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Credit</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Balance</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Voucher</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Description</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Debit</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Credit</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Balance</th>
                 </tr>
               </thead>
               <tbody>
                 {entries.map((e) => (
-                  <tr key={e.id} className="border-b border-slate-200 hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm text-slate-600">{new Date(e.date).toLocaleDateString('en-PK')}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-navy">{e.voucherId}</td>
-                    <td className="px-6 py-4 text-sm text-slate-700">{e.description}</td>
-                    <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{e.debit > 0 ? formatCurrency(e.debit) : '-'}</td>
-                    <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{e.credit > 0 ? formatCurrency(e.credit) : '-'}</td>
-                    <td className="px-6 py-4 text-right text-sm font-semibold text-navy">{formatCurrency(e.runningBalance)}</td>
+                  <tr key={e.id} className="border-b border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/50">
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{new Date(e.date).toLocaleDateString('en-PK')}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-navy dark:text-white">{e.voucherId}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{e.description}</td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">{e.debit > 0 ? formatCurrency(e.debit) : '-'}</td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">{e.credit > 0 ? formatCurrency(e.credit) : '-'}</td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-navy dark:text-white">{formatCurrency(e.runningBalance)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-700">Closing Balance</p>
-              <p className="text-2xl font-semibold text-navy">{formatCurrency(closingBalance)}</p>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Closing Balance</p>
+              <p className="text-2xl font-semibold text-navy dark:text-white">{formatCurrency(closingBalance)}</p>
             </div>
           </div>
         </>

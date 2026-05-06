@@ -215,8 +215,8 @@ export default function SaleReturns() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Sale Returns</h1>
-          <p className="mt-1 text-sm text-slate-500">Record returns of goods from customers</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Sale Returns</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Record returns of goods from customers</p>
         </div>
         {canEdit ? (
           <button
@@ -231,8 +231,8 @@ export default function SaleReturns() {
       </div>
 
       {canEdit && showForm && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-slate-900">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
+          <h2 className="mb-4 text-xl font-semibold text-slate-900 dark:text-white">
             {editingReturn ? 'Edit Sale Return' : 'Create New Sale Return'}
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -392,33 +392,33 @@ export default function SaleReturns() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-dark-card">
         {loading ? (
-          <p className="p-6 text-center text-slate-500">Loading...</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">Loading...</p>
         ) : returns.length === 0 ? (
-          <p className="p-6 text-center text-slate-500">No sale returns yet</p>
+          <p className="p-6 text-center text-slate-500 dark:text-slate-400">No sale returns yet</p>
         ) : (
           <table className="w-full">
-            <thead className="border-b border-slate-200 bg-slate-50">
+            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-700/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Voucher #</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Reason</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600">Ref. Sale</th>
-                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600">Actions</th>}
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Voucher #</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Date</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Reason</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Ref. Sale</th>
+                {canEdit && <th className="px-6 py-3 text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {returns.map((r) => (
-                <tr key={r.id} className="border-b border-slate-200 hover:bg-slate-50">
-                  <td className="px-6 py-4 text-sm font-medium text-navy">{r.voucherNo}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{r.party.name}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{new Date(r.date).toLocaleDateString('en-PK')}</td>
-                  <td className="px-6 py-4 text-right text-sm font-semibold text-rose-600">{formatCurrency(r.total)}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{r.reason || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{r.sale?.invoiceNo || '-'}</td>
+                <tr key={r.id} className="border-b border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/50">
+                  <td className="px-6 py-4 text-sm font-medium text-navy dark:text-white">{r.voucherNo}</td>
+                  <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{r.party.name}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{new Date(r.date).toLocaleDateString('en-PK')}</td>
+                  <td className="px-6 py-4 text-right text-sm font-semibold text-rose-600 dark:text-rose-400">{formatCurrency(r.total)}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{r.reason || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{r.sale?.invoiceNo || '-'}</td>
                   {canEdit && (
                     <td className="px-6 py-4 text-center">
                       <button

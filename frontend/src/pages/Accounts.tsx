@@ -120,8 +120,8 @@ export default function Accounts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-navy">Chart of Accounts</h1>
-          <p className="mt-1 text-sm text-slate-500">Manage all ledger accounts</p>
+          <h1 className="text-2xl font-bold text-navy dark:text-white">Chart of Accounts</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage all ledger accounts</p>
         </div>
         {canEdit ? (
           <button
@@ -136,25 +136,25 @@ export default function Accounts() {
       </div>
 
       {canEdit && showForm && (
-        <div className="stat-card">
-          <h2 className="mb-6 text-xl font-semibold text-navy">
+      <div className="stat-card">
+        <h2 className="mb-6 text-xl font-semibold text-navy dark:text-white">
             {editingAccount ? 'Edit Account' : 'Create New Account'}
-          </h2>
+        </h2>
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
           >
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Account Code</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Account Code</label>
                 <input
                   type="text"
                   placeholder="e.g., 1000"
-                  className={`input-field ${errors.code ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : ''}`}
+                  className={`input-field ${errors.code ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 dark:border-rose-700' : ''}`}
                   {...register('code')}
                 />
                 {errors.code && (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-600">
+                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-600 dark:text-rose-400">
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10" />
                       <path d="M12 8v4M12 16h.01" />
@@ -164,15 +164,15 @@ export default function Accounts() {
                 )}
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Account Name</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Account Name</label>
                 <input
                   type="text"
                   placeholder="e.g., Cash Account"
-                  className={`input-field ${errors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : ''}`}
+                  className={`input-field ${errors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 dark:border-rose-700' : ''}`}
                   {...register('name')}
                 />
                 {errors.name && (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-600">
+                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-600 dark:text-rose-400">
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10" />
                       <path d="M12 8v4M12 16h.01" />
@@ -182,7 +182,7 @@ export default function Accounts() {
                 )}
               </div>
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">Account Type</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Account Type</label>
                 <select
                   className="input-field"
                   {...register('type')}
@@ -218,16 +218,16 @@ export default function Accounts() {
         {loading ? (
           <div className="flex min-h-[300px] items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-navy/20 border-t-navy"></div>
-              <p className="text-slate-500">Loading accounts...</p>
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-navy/20 border-t-navy dark:border-navy/40"></div>
+              <p className="text-slate-500 dark:text-slate-400">Loading accounts...</p>
             </div>
           </div>
         ) : accounts.length === 0 ? (
           <div className="flex min-h-[300px] flex-col items-center justify-center text-center p-8">
-            <svg className="mb-4 h-16 w-16 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg className="mb-4 h-16 w-16 text-slate-300 dark:text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <p className="text-slate-500">No accounts yet</p>
+            <p className="text-slate-500 dark:text-slate-400">No accounts yet</p>
             {canEdit && (
               <button
                 onClick={() => setShowForm(true)}
@@ -242,31 +242,31 @@ export default function Accounts() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/50">
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Code</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Type</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                    {canEdit && <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>}
+                  <tr className="border-b border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-700/50">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Code</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Type</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
+                    {canEdit && <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Actions</th>}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                   {accounts.map((a) => (
-                    <tr key={a.id} className="transition-colors hover:bg-slate-50">
+                    <tr key={a.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50">
                       <td className="px-6 py-4">
-                        <span className="font-medium text-navy">{a.code}</span>
+                        <span className="font-medium text-navy dark:text-white">{a.code}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">{a.name}</td>
+                      <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{a.name}</td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                           {a.type}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
                           a.isActive 
-                            ? 'bg-emerald-50 text-emerald-700' 
-                            : 'bg-rose-50 text-rose-700'
+                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
+                            : 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
                         }`}>
                           <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
                             a.isActive ? 'bg-emerald-500' : 'bg-rose-500'
@@ -281,15 +281,15 @@ export default function Accounts() {
                               onClick={() => toggleAccountStatus(a)}
                               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                 a.isActive
-                                  ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
-                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                  ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50'
+                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50'
                               }`}
                             >
                               {a.isActive ? 'Deactivate' : 'Activate'}
                             </button>
                             <button
                               onClick={() => editAccount(a)}
-                              className="rounded-lg px-3 py-1.5 text-sm font-medium text-navy hover:bg-navy/5 transition-colors"
+                              className="rounded-lg px-3 py-1.5 text-sm font-medium text-navy hover:bg-navy/5 transition-colors dark:text-white dark:hover:bg-slate-700/50"
                             >
                               Edit
                             </button>
