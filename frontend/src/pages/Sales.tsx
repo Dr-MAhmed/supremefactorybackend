@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useApiError } from '../hooks/useApiError';
 import api from '../lib/api';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useToast } from '../components/ToastProvider';
 import { usePermissions } from '../hooks/usePermissions';
 import ViewOnlyNotice from '../components/ViewOnlyNotice';
+import { generateSalePDF, downloadPDF, openPDFForPrint } from '../lib/pdfGenerator';
 
 const saleSchema = z.object({
   invoiceNo: z.string().optional(),
@@ -186,6 +187,50 @@ export default function Sales() {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(value);
   };
+
+  const handlePDFDownload = useCallback((s: Sale) => {
+    const doc = generateSalePDF({
+      invoiceNo: s.invoiceNo,
+      date: s.date,
+      dueDate: s.dueDate,
+      customer: s.party.name,
+      subtotal: s.subtotal,
+      discount: s.discount,
+      tax: s.tax,
+      total: s.total,
+      paymentStatus: s.paymentStatus,
+      items: s.items.map(item => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit: item.unit,
+        rate: Number(item.rate),
+        amount: Number(item.amount),
+      })),
+    });
+    downloadPDF(doc, `Sale_Invoice_${s.invoiceNo}.pdf`);
+  }, []);
+
+  const handlePDFPrint = useCallback((s: Sale) => {
+    const doc = generateSalePDF({
+      invoiceNo: s.invoiceNo,
+      date: s.date,
+      dueDate: s.dueDate,
+      customer: s.party.name,
+      subtotal: s.subtotal,
+      discount: s.discount,
+      tax: s.tax,
+      total: s.total,
+      paymentStatus: s.paymentStatus,
+      items: s.items.map(item => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit: item.unit,
+        rate: Number(item.rate),
+        amount: Number(item.amount),
+      })),
+    });
+    openPDFForPrint(doc, `Sale Invoice #${s.invoiceNo}`);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -438,7 +483,7 @@ export default function Sales() {
                   </td>
                   {canEdit && (
                     <td className="px-6 py-4 text-center">
-                      <div className="flex gap-2 justify-center">
+                      <div className="flex gap-1.5 justify-center">
                         <button
                           onClick={() => editSale(s)}
                           className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
@@ -450,6 +495,18 @@ export default function Sales() {
                           className="rounded-lg bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-200"
                         >
                           Status
+                        </button>
+                        <button
+                          onClick={() => handlePDFDownload(s)}
+                          className="rounded-lg bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-200"
+                        >
+                          PDF
+                        </button>
+                        <button
+                          onClick={() => handlePDFPrint(s)}
+                          className="rounded-lg bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700 transition hover:bg-purple-200"
+                        >
+                          Print
                         </button>
                       </div>
                     </td>

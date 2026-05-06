@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useApiError } from '../hooks/useApiError';
 import api from '../lib/api';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useToast } from '../components/ToastProvider';
 import { usePermissions } from '../hooks/usePermissions';
 import ViewOnlyNotice from '../components/ViewOnlyNotice';
+import { generatePurchasePDF, downloadPDF, openPDFForPrint } from '../lib/pdfGenerator';
 
 interface PurchaseItem {
   id: string;
@@ -219,6 +220,50 @@ export default function Purchases() {
     return `PKR ${value.toLocaleString('en-PK')}`;
   };
 
+  const handlePDFDownload = useCallback((p: Purchase) => {
+    const doc = generatePurchasePDF({
+      voucherNo: p.voucherNo,
+      date: p.date,
+      supplier: p.party.name,
+      supplierInvoiceNo: p.supplierInvoiceNo,
+      subtotal: p.subtotal,
+      discount: p.discount,
+      tax: p.tax,
+      total: p.total,
+      paymentStatus: p.paymentStatus,
+      items: p.items.map(item => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit: item.unit,
+        rate: Number(item.rate),
+        amount: Number(item.amount),
+      })),
+    });
+    downloadPDF(doc, `Purchase_Voucher_${p.voucherNo}.pdf`);
+  }, []);
+
+  const handlePDFPrint = useCallback((p: Purchase) => {
+    const doc = generatePurchasePDF({
+      voucherNo: p.voucherNo,
+      date: p.date,
+      supplier: p.party.name,
+      supplierInvoiceNo: p.supplierInvoiceNo,
+      subtotal: p.subtotal,
+      discount: p.discount,
+      tax: p.tax,
+      total: p.total,
+      paymentStatus: p.paymentStatus,
+      items: p.items.map(item => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit: item.unit,
+        rate: Number(item.rate),
+        amount: Number(item.amount),
+      })),
+    });
+    openPDFForPrint(doc, `Purchase Voucher #${p.voucherNo}`);
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -426,7 +471,7 @@ export default function Purchases() {
                   </td>
                   {canEdit && (
                     <td className="px-6 py-4 text-center">
-                      <div className="flex gap-2 justify-center">
+                      <div className="flex gap-1.5 justify-center">
                         <button
                           onClick={() => editPurchase(p)}
                           className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
@@ -438,6 +483,18 @@ export default function Purchases() {
                           className="rounded-lg bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-200"
                         >
                           Status
+                        </button>
+                        <button
+                          onClick={() => handlePDFDownload(p)}
+                          className="rounded-lg bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-200"
+                        >
+                          PDF
+                        </button>
+                        <button
+                          onClick={() => handlePDFPrint(p)}
+                          className="rounded-lg bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700 transition hover:bg-purple-200"
+                        >
+                          Print
                         </button>
                       </div>
                     </td>

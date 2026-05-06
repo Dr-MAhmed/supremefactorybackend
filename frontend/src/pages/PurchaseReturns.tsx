@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useApiError } from '../hooks/useApiError';
 import api from '../lib/api';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useToast } from '../components/ToastProvider';
 import { usePermissions } from '../hooks/usePermissions';
 import ViewOnlyNotice from '../components/ViewOnlyNotice';
+import { generatePurchaseReturnPDF, downloadPDF, openPDFForPrint } from '../lib/pdfGenerator';
 
 interface PurchaseReturnItem {
   id: string;
@@ -210,6 +211,50 @@ export default function PurchaseReturns() {
   const formatCurrency = (value: number) => {
     return `PKR ${value.toLocaleString('en-PK')}`;
   };
+
+  const handlePDFDownload = useCallback((r: PurchaseReturn) => {
+    const doc = generatePurchaseReturnPDF({
+      voucherNo: r.voucherNo,
+      date: r.date,
+      party: r.party.name,
+      referenceNo: r.purchase?.voucherNo,
+      subtotal: r.subtotal,
+      discount: r.discount,
+      tax: r.tax,
+      total: r.total,
+      reason: r.reason,
+      items: r.items.map(item => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit: item.unit,
+        rate: Number(item.rate),
+        amount: Number(item.amount),
+      })),
+    });
+    downloadPDF(doc, `Purchase_Return_${r.voucherNo}.pdf`);
+  }, []);
+
+  const handlePDFPrint = useCallback((r: PurchaseReturn) => {
+    const doc = generatePurchaseReturnPDF({
+      voucherNo: r.voucherNo,
+      date: r.date,
+      party: r.party.name,
+      referenceNo: r.purchase?.voucherNo,
+      subtotal: r.subtotal,
+      discount: r.discount,
+      tax: r.tax,
+      total: r.total,
+      reason: r.reason,
+      items: r.items.map(item => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit: item.unit,
+        rate: Number(item.rate),
+        amount: Number(item.amount),
+      })),
+    });
+    openPDFForPrint(doc, `Purchase Return #${r.voucherNo}`);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -421,12 +466,26 @@ export default function PurchaseReturns() {
                   <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{r.purchase?.voucherNo || '-'}</td>
                   {canEdit && (
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => editReturn(r)}
-                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex gap-1.5 justify-center">
+                        <button
+                          onClick={() => editReturn(r)}
+                          className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handlePDFDownload(r)}
+                          className="rounded-lg bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-200"
+                        >
+                          PDF
+                        </button>
+                        <button
+                          onClick={() => handlePDFPrint(r)}
+                          className="rounded-lg bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700 transition hover:bg-purple-200"
+                        >
+                          Print
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
