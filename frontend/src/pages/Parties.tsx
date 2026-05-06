@@ -104,7 +104,7 @@ export default function Parties() {
           phone: values.phone || null,
           city: values.city || null
         });
-        showToast('Party updated successfully');
+        showToast('Party updated successfully', 'success');
       } else {
         await api.post('/parties', {
           ...values,
@@ -112,7 +112,7 @@ export default function Parties() {
           phone: values.phone || null,
           city: values.city || null
         });
-        showToast('Party created successfully');
+        showToast('Party created successfully', 'success');
       }
       reset();
       setEditingParty(null);

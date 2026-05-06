@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '../lib/api';
+import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../components/AuthContext';
 
 interface UserData {
@@ -30,6 +31,8 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
+  const { showToast } = useToast();
+
   const {
     register,
     handleSubmit,
@@ -49,7 +52,7 @@ export default function Users() {
       const res = await api.get('/users');
       setUsers(res.data);
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to load users');
+      showToast(error.response?.data?.message || 'Failed to load users', 'error');
     } finally {
       setLoading(false);
     }
@@ -58,12 +61,12 @@ export default function Users() {
   const onSubmit = async (data: CreateUserForm) => {
     try {
       await api.post('/users', data);
-      alert('User created successfully');
+      showToast('User created successfully', 'success');
       reset();
       setShowForm(false);
       await fetchUsers();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to create user');
+      showToast(error.response?.data?.message || 'Failed to create user', 'error');
     }
   };
 
@@ -71,10 +74,10 @@ export default function Users() {
     if (!window.confirm(`Deactivate ${userName}?`)) return;
     try {
       await api.delete(`/users/${userId}`);
-      alert('User deactivated');
+      showToast('User deactivated', 'success');
       await fetchUsers();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to deactivate user');
+      showToast(error.response?.data?.message || 'Failed to deactivate user', 'error');
     }
   };
 

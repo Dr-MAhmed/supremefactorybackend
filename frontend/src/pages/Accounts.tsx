@@ -98,10 +98,10 @@ export default function Accounts() {
     try {
       if (editingAccount) {
         await api.put(`/accounts/${editingAccount.id}`, values);
-        showToast('Account updated successfully');
+        showToast('Account updated successfully', 'success');
       } else {
         await api.post('/accounts', values);
-        showToast('Account created successfully');
+        showToast('Account created successfully', 'success');
       }
       reset();
       setEditingAccount(null);

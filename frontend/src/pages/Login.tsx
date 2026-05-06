@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { useAuth } from '../components/AuthContext';
+import { useToast } from '../components/ToastProvider';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -33,7 +34,8 @@ export default function Login() {
         error.response?.data?.message ||
         error.message ||
         'Login failed';
-      alert(message);
+      // Use toast notifications instead of alert()
+      showToast(message, 'error');
     }
   };
 
