@@ -36,7 +36,24 @@ router.post('/', validateBody(partySchema), asyncHandler(async (req: AuthRequest
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot create parties', 403);
   
   const data = req.body as z.infer<typeof partySchema>;
-  const party = await prisma.party.create({ data: { ...data, isActive: true } });
+  const party = await prisma.party.create({
+    data: {
+      type: data.type,
+      name: data.name,
+      contactPerson: data.contactPerson ?? null,
+      phone: data.phone ?? null,
+      email: data.email ?? null,
+      address: data.address ?? null,
+      city: data.city ?? null,
+      ntn: data.ntn ?? null,
+      openingBalance: data.openingBalance ?? 0,
+      openingBalanceType: data.openingBalanceType ?? 'DR',
+      creditLimit: data.creditLimit ?? 0,
+      paymentTerms: data.paymentTerms ?? null,
+      notes: data.notes ?? null,
+      isActive: true,
+    }
+  });
   res.status(201).json(party);
 }));
 
