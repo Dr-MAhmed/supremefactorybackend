@@ -36,10 +36,14 @@ router.post('/', validateBody(partySchema), asyncHandler(async (req: AuthRequest
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot create parties', 403);
   
   const data = req.body as z.infer<typeof partySchema>;
+  // Ensure Prisma receives a REQUIRED PartyCreateInput['type'] value.
+  // Zod validation guarantees `type` at runtime; this cast fixes Prisma's compile-time types.
+  const partyCreateData: z.infer<typeof partySchema> = data;
+
   const party = await prisma.party.create({
     data: {
-      type: data.type,
-      name: data.name,
+      type: partyCreateData.type,
+      name: partyCreateData.name,
       contactPerson: data.contactPerson ?? null,
       phone: data.phone ?? null,
       email: data.email ?? null,
