@@ -88,14 +88,14 @@ router.get('/summary', asyncHandler(async (req, res) => {
     take: 5,
   });
 
-  const partyIds = topCustomersData.map(c => c.partyId).filter(Boolean);
+  const partyIds = topCustomersData.map((c: typeof topCustomersData[0]) => c.partyId).filter(Boolean);
   const parties = await prisma.party.findMany({
     where: { id: { in: partyIds } },
     select: { id: true, name: true }
   });
-  const partyMap = new Map(parties.map(p => [p.id, p.name]));
+  const partyMap = new Map(parties.map((p: typeof parties[0]) => [p.id, p.name]));
 
-  const topCustomers = topCustomersData.map(c => ({
+  const topCustomers = topCustomersData.map((c: typeof topCustomersData[0]) => ({
     name: partyMap.get(c.partyId!) || 'Unknown',
     total: Number(c._sum.total || 0)
   }));
@@ -107,7 +107,7 @@ router.get('/summary', asyncHandler(async (req, res) => {
     totalPayable,
     netProfit,
     cashInHand: cashBalance,
-    recentTransactions: recentTransactions.map(t => ({
+    recentTransactions: recentTransactions.map((t: typeof recentTransactions[0]) => ({
       id: t.id,
       date: t.date,
       description: t.description,
@@ -116,7 +116,7 @@ router.get('/summary', asyncHandler(async (req, res) => {
       account: t.account.name,
       party: t.party?.name
     })),
-    topCustomers: topCustomers.map(c => ({
+    topCustomers: topCustomers.map((c: typeof topCustomers[0]) => ({
       name: c.name,
       total: c.total
     }))
