@@ -40,6 +40,9 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry && !isRefreshing) {
+      if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh')) {
+        return Promise.reject(error);
+      }
       if (!localStorage.getItem('refreshToken')) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
@@ -53,7 +56,7 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'}/auth/refresh`, { 
+        const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL || api.defaults.baseURL}/auth/refresh`, { 
           refreshToken 
         });
 

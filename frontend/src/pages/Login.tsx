@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import api from '../lib/api';
 import { useAuth } from '../components/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -17,6 +18,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const [loginError, setLoginError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -24,6 +26,7 @@ export default function Login() {
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginForm) => {
+    setLoginError(null);
     try {
       const res = await api.post('/auth/login', data);
       login(res.data.accessToken, res.data.user);
@@ -35,8 +38,7 @@ export default function Login() {
         error.response?.data?.message ||
         error.message ||
         'Login failed';
-      // Will be replaced with toast notifications
-      console.error(message);
+      setLoginError(message);
     }
   };
 
@@ -92,6 +94,11 @@ export default function Login() {
           {/* Login Card */}
           <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 shadow-xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-dark-card">
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+              {loginError && (
+                <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-600 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-400">
+                  {loginError}
+                </div>
+              )}
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Email address</label>
                 <div className="relative">
