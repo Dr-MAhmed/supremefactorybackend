@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import Users from './pages/Users';
 import { useAuth } from './components/AuthContext';
 import RoleGuard from './components/RoleGuard';
+import InstallPrompt from './components/InstallPrompt';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -68,6 +69,7 @@ function App() {
           />
         </Route>
       </Routes>
+      <InstallPrompt />
     </div>
   );
 }
