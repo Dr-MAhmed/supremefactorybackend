@@ -38,7 +38,7 @@ const authLimiter = rateLimit({
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'development' ? 500 : 100,
+  max: process.env.NODE_ENV === 'development' ? 500 : 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: 'Too many requests. Please wait a few minutes and try again.'
