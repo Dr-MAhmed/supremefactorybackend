@@ -1,6 +1,16 @@
 {
   "framework": null,
-  "buildCommand": "npm install --include=dev && npx prisma generate && npx tsc",
-  "outputDirectory": "dist",
-  "installCommand": "npm install --include=dev"
+  "builds": [
+    {
+      "src": "src/api/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "src/api/index.ts"
+    }
+  ],
+  "outputDirectory": "dist"
 }

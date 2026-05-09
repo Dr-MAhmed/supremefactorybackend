@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: ['https://supremefactory.vercel.app', 'http://localhost:5173', 'http://localhost:4173', 'https://supremefactorybackend.vercel.app/api/v1/health'],
+    origin: ['https://supremefactory.vercel.app', 'http://localhost:5173', 'http://localhost:4173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
