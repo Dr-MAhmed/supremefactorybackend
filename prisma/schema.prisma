@@ -1,0 +1,289 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ACCOUNTANT")
+  isActive     Boolean  @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime @default(now())
+  purchases    Purchase[]     @relation("PurchaseCreatedBy")
+  sales        Sale[]         @relation("SaleCreatedBy")
+  journalEntries JournalEntry[] @relation("JournalEntryCreatedBy")
+  purchaseReturns PurchaseReturn[] @relation("PurchaseReturnCreatedBy")
+  saleReturns     SaleReturn[]     @relation("SaleReturnCreatedBy")
+  paymentVouchers PaymentVoucher[] @relation("PaymentVoucherCreatedBy")
+  receiptVouchers ReceiptVoucher[] @relation("ReceiptVoucherCreatedBy")
+  journalVouchers JournalVoucher[] @relation("JournalVoucherCreatedBy")
+}
+
+model Account {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  name      String
+  type      String
+  parentId  String?
+  parent    Account?  @relation("AccountChildren", fields: [parentId], references: [id])
+  children  Account[] @relation("AccountChildren")
+  journalEntries JournalEntry[]
+  journalVoucherLines JournalVoucherLine[]
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Party {
+  id                    String    @id @default(uuid())
+  type                  String
+  name                  String
+  contactPerson         String?
+  phone                 String?
+  email                 String?
+  address               String?
+  city                  String?
+  ntn                   String?
+  openingBalance        Decimal   @default(0)
+  openingBalanceType    String    @default("DR")
+  creditLimit           Decimal   @default(0)
+  paymentTerms          String?
+  notes                 String?
+  purchases             Purchase[]
+  sales                 Sale[]
+  journalEntries        JournalEntry[]
+  purchaseReturns       PurchaseReturn[]
+  saleReturns           SaleReturn[]
+  paymentVouchers       PaymentVoucher[]
+  receiptVouchers       ReceiptVoucher[]
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+}
+
+model Purchase {
+  id               String      @id @default(uuid())
+  voucherNo        String      @unique
+  date             DateTime
+  partyId          String
+  party            Party       @relation(fields: [partyId], references: [id])
+  supplierInvoiceNo String?
+  subtotal         Decimal
+  discount         Decimal
+  tax              Decimal
+  total            Decimal
+  paidAmount       Decimal
+  paymentStatus    String
+  remarks          String?
+  createdById      String
+  createdBy        User        @relation("PurchaseCreatedBy", fields: [createdById], references: [id])
+  createdAt        DateTime    @default(now())
+  items            PurchaseItem[]
+  purchaseReturns  PurchaseReturn[]
+  paymentVouchers  PaymentVoucher[]
+}
+
+model PurchaseItem {
+  id         String   @id @default(uuid())
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id])
+  description String
+  quantity   Decimal
+  unit       String
+  rate       Decimal
+  amount     Decimal
+}
+
+model Sale {
+  id             String      @id @default(uuid())
+  invoiceNo      String      @unique
+  date           DateTime
+  partyId        String
+  party          Party       @relation(fields: [partyId], references: [id])
+  customerPo     String?
+  salesperson    String?
+  subtotal       Decimal
+  discount       Decimal
+  tax            Decimal
+  total          Decimal
+  receivedAmount Decimal
+  paymentStatus  String
+  dueDate        DateTime?
+  remarks        String?
+  createdById    String
+  createdBy      User        @relation("SaleCreatedBy", fields: [createdById], references: [id])
+  createdAt      DateTime    @default(now())
+  items          SaleItem[]
+  saleReturns    SaleReturn[]
+  receiptVouchers ReceiptVoucher[]
+}
+
+model SaleItem {
+  id        String @id @default(uuid())
+  saleId    String
+  sale      Sale   @relation(fields: [saleId], references: [id])
+  description String
+  quantity  Decimal
+  unit      String
+  rate      Decimal
+  amount    Decimal
+}
+
+model JournalEntry {
+  id         String      @id @default(uuid())
+  voucherType String
+  voucherId  String
+  date       DateTime
+  accountId  String
+  account    Account     @relation(fields: [accountId], references: [id])
+  partyId    String?
+  party      Party?      @relation(fields: [partyId], references: [id])
+  description String?
+  debit      Decimal     @default(0)
+  credit     Decimal     @default(0)
+  createdById String
+  createdBy  User        @relation("JournalEntryCreatedBy", fields: [createdById], references: [id])
+  createdAt  DateTime    @default(now())
+}
+
+model CompanySetting {
+  id                 String   @id @default(uuid())
+  companyName        String
+  address            String
+  phone              String
+  email              String
+  logoUrl            String?
+  ntn                String?
+  currency           String   @default("PKR")
+  financialYearStart DateTime
+  invoiceTerms       String?
+  updatedAt          DateTime @updatedAt
+}
+
+model PurchaseReturn {
+  id          String   @id @default(uuid())
+  voucherNo   String   @unique
+  date        DateTime
+  partyId     String
+  party       Party    @relation(fields: [partyId], references: [id])
+  purchaseId  String?  // reference to original purchase
+  purchase    Purchase? @relation(fields: [purchaseId], references: [id])
+  subtotal    Decimal
+  discount    Decimal
+  tax         Decimal
+  total       Decimal
+  reason      String?
+  remarks     String?
+  createdById String
+  createdBy   User     @relation("PurchaseReturnCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  items       PurchaseReturnItem[]
+}
+
+model PurchaseReturnItem {
+  id         String         @id @default(uuid())
+  returnId   String
+  return     PurchaseReturn @relation(fields: [returnId], references: [id])
+  description String
+  quantity   Decimal
+  unit       String
+  rate       Decimal
+  amount     Decimal
+}
+
+model SaleReturn {
+  id         String   @id @default(uuid())
+  voucherNo  String   @unique
+  date       DateTime
+  partyId    String
+  party      Party    @relation(fields: [partyId], references: [id])
+  saleId     String?  // reference to original sale
+  sale       Sale?    @relation(fields: [saleId], references: [id])
+  subtotal   Decimal
+  discount   Decimal
+  tax        Decimal
+  total      Decimal
+  reason     String?
+  remarks    String?
+  createdById String
+  createdBy  User     @relation("SaleReturnCreatedBy", fields: [createdById], references: [id])
+  createdAt  DateTime @default(now())
+  items      SaleReturnItem[]
+}
+
+model SaleReturnItem {
+  id         String      @id @default(uuid())
+  returnId   String
+  return     SaleReturn  @relation(fields: [returnId], references: [id])
+  description String
+  quantity   Decimal
+  unit       String
+  rate       Decimal
+  amount     Decimal
+}
+
+model PaymentVoucher {
+  id          String      @id @default(uuid())
+  voucherNo   String      @unique
+  date        DateTime
+  partyId     String
+  party       Party       @relation(fields: [partyId], references: [id])
+  paymentMethod String
+  bankAccount String?
+  chequeNo    String?
+  chequeDate  DateTime?
+  amount      Decimal
+  purchaseId  String?     // against which purchase
+  purchase    Purchase?   @relation(fields: [purchaseId], references: [id])
+  narration   String?
+  createdById String
+  createdBy   User        @relation("PaymentVoucherCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime    @default(now())
+}
+
+model ReceiptVoucher {
+  id          String      @id @default(uuid())
+  voucherNo   String      @unique
+  date        DateTime
+  partyId     String
+  party       Party       @relation(fields: [partyId], references: [id])
+  paymentMethod String
+  bankAccount String?
+  chequeNo    String?
+  chequeDate  DateTime?
+  amount      Decimal
+  saleId      String?     // against which sale
+  sale        Sale?       @relation(fields: [saleId], references: [id])
+  narration   String?
+  createdById String
+  createdBy   User        @relation("ReceiptVoucherCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime    @default(now())
+}
+
+model JournalVoucher {
+  id          String   @id @default(uuid())
+  voucherNo   String   @unique
+  date        DateTime
+  narration   String
+  createdById String
+  createdBy   User     @relation("JournalVoucherCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  lines       JournalVoucherLine[]
+}
+
+model JournalVoucherLine {
+  id         String         @id @default(uuid())
+  voucherId  String
+  voucher    JournalVoucher @relation(fields: [voucherId], references: [id])
+  accountId  String
+  account    Account        @relation(fields: [accountId], references: [id])
+  description String?
+  debit      Decimal        @default(0)
+  credit     Decimal        @default(0)
+}
