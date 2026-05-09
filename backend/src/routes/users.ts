@@ -34,8 +34,8 @@ const changePasswordSchema = z.object({
 });
 
 // POST /users/change-password - Change current user's password
-router.post('/change-password', validateBody(changePasswordSchema), asyncHandler(async (req: AuthRequest, res) => {
-  const authUser = (req as AuthRequest).user;
+router.post('/change-password', validateBody(changePasswordSchema), asyncHandler<z.infer<typeof changePasswordSchema>, any>(async (req: AuthRequest<any, z.infer<typeof changePasswordSchema>>, res) => {
+  const authUser = req.user;
   if (!authUser) return res.status(401).json({ message: 'Unauthorized' });
 
   const { currentPassword, newPassword } = req.body;
@@ -64,8 +64,8 @@ router.post('/change-password', validateBody(changePasswordSchema), asyncHandler
 }));
 
 // GET /users - List all users (admin only)
-router.get('/', asyncHandler(async (req: AuthRequest, res) => {
-  const user = (req as AuthRequest).user;
+router.get('/', asyncHandler<any, any>(async (req: AuthRequest<any, any>, res) => {
+  const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (user.role !== 'ADMIN') throw new AppError('Only admins can view users', 403);
 
@@ -86,8 +86,8 @@ router.get('/', asyncHandler(async (req: AuthRequest, res) => {
 }));
 
 // POST /users - Create new user (admin only)
-router.post('/', asyncHandler(async (req: AuthRequest, res) => {
-  const user = (req as AuthRequest).user;
+router.post('/', asyncHandler<z.infer<typeof createUserSchema>, any>(async (req: AuthRequest<any, z.infer<typeof createUserSchema>>, res) => {
+  const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (user.role !== 'ADMIN') throw new AppError('Only admins can create users', 403);
 
@@ -121,8 +121,8 @@ router.post('/', asyncHandler(async (req: AuthRequest, res) => {
 }));
 
 // GET /users/:id - Get user details
-router.get('/:id', asyncHandler(async (req: AuthRequest, res) => {
-  const user = (req as AuthRequest).user;
+router.get('/:id', asyncHandler<any, any>(async (req: AuthRequest<{ id: string }, any>, res) => {
+  const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
   const targetUser = await prisma.user.findUnique({
@@ -149,8 +149,8 @@ router.get('/:id', asyncHandler(async (req: AuthRequest, res) => {
 }));
 
 // PATCH /users/:id - Update user
-router.patch('/:id', asyncHandler(async (req: AuthRequest, res) => {
-  const user = (req as AuthRequest).user;
+router.patch('/:id', asyncHandler<z.infer<typeof updateUserSchema>, any>(async (req: AuthRequest<{ id: string }, z.infer<typeof updateUserSchema>>, res) => {
+  const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
   // Only admins or the user themselves can update
@@ -195,40 +195,10 @@ router.patch('/:id', asyncHandler(async (req: AuthRequest, res) => {
   res.json(updatedUser);
 }));
 
-// POST /users/change-password - Change current user's password
-router.post('/change-password', validateBody(changePasswordSchema), asyncHandler(async (req: AuthRequest, res) => {
-  const authUser = (req as AuthRequest).user;
-  if (!authUser) return res.status(401).json({ message: 'Unauthorized' });
-
-  const { currentPassword, newPassword } = req.body;
-
-  const currentUser = await prisma.user.findUnique({
-    where: { id: authUser.userId },
-    select: { id: true, passwordHash: true, isActive: true }
-  });
-
-  if (!currentUser || !currentUser.isActive) {
-    throw new AppError('Unauthorized', 401);
-  }
-
-  const valid = await bcrypt.compare(currentPassword, currentUser.passwordHash);
-  if (!valid) {
-    throw new AppError('Current password is incorrect', 400);
-  }
-
-  const passwordHash = await bcrypt.hash(newPassword, 12);
-  await prisma.user.update({
-    where: { id: currentUser.id },
-    data: { passwordHash }
-  });
-
-  res.json({ message: 'Password updated successfully' });
-}));
-
 // DELETE /users/:id - Deactivate user (admin only)
-router.delete('/:id', asyncHandler(async (req: AuthRequest, res) => {
+router.delete('/:id', asyncHandler<any, any>(async (req: AuthRequest<{ id: string }, any>, res) => {
 
-  const user = (req as AuthRequest).user;
+  const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (user.role !== 'ADMIN') throw new AppError('Only admins can delete users', 403);
 

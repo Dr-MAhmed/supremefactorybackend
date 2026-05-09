@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 
-type AsyncRouteHandler<T = Request> = (req: T, res: Response, next: NextFunction) => Promise<unknown>;
+type AsyncRouteHandler<B = any, Res = any, T = Request<any, any, B>> = (req: T, res: Response<Res, Record<string, any>>, next: NextFunction) => Promise<unknown>;
 
-export const asyncHandler = <T extends Request = Request>(handler: AsyncRouteHandler<T>) => {
-  return (req: T, res: Response, next: NextFunction) => {
+export const asyncHandler = <B = any, Res = any>(handler: AsyncRouteHandler<B, Res>) => {
+  return (req: Request<any, any, B>, res: Response<Res, Record<string, any>>, next: NextFunction) => {
     void handler(req, res, next).catch(next);
   };
 };

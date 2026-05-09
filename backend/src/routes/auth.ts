@@ -14,7 +14,7 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required')
 });
 
-router.post('/login', asyncHandler(async (req, res) => {
+router.post('/login', asyncHandler<typeof loginSchema, any>(async (req, res) => {
   const { email, password } = loginSchema.parse(req.body);
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !user.isActive) {
@@ -47,7 +47,7 @@ const refreshSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required')
 });
 
-router.post('/refresh', validateBody(refreshSchema), asyncHandler(async (req, res) => {
+router.post('/refresh', validateBody(refreshSchema), asyncHandler<z.infer<typeof refreshSchema>, any>(async (req, res) => {
   const { refreshToken } = req.body;
   
   try {

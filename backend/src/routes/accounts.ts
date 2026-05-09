@@ -16,7 +16,7 @@ const accountSchema = z.object({
 
 router.use(authenticate);
 
-router.get('/', asyncHandler(async (_req, res) => {
+router.get('/', asyncHandler(async (_req: Request, res: Response) => {
   const accounts = await prisma.account.findMany({ orderBy: { code: 'asc' } });
   res.json(accounts);
 }));

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -58,7 +58,7 @@ app.use('/api/v1/ledger', ledgerRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/reports', reportsRoutes);
 
-app.get('/api/v1/health', (_req, res) => {
+app.get('/api/v1/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'supreme-cotton-backend' });
 });
 

@@ -25,7 +25,7 @@ const partySchema = z.object({
 
 router.use(authenticate);
 
-router.get('/', asyncHandler(async (_req, res) => {
+router.get('/', asyncHandler(async (_req: Request, res: Response) => {
   const parties = await prisma.party.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } });
   res.json(parties);
 }));
