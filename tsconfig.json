@@ -13,6 +13,6 @@
     "resolveJsonModule": true,
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src", "src/api", "database"],
+  "include": ["src", "database"],
   "exclude": ["node_modules", "dist"]
 }
