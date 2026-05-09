@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-7772232b'], (function (workbox) { 'use strict';
+define(['./workbox-f68fa42b'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -80,16 +80,44 @@ define(['./workbox-7772232b'], (function (workbox) { 'use strict';
     "url": "registerSW.js",
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
-    "url": "index.html",
-    "revision": "0.8o0bo3eeksc"
+    "url": "/index.html",
+    "revision": "0.ttluk6n222k"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
-    allowlist: [/^\/$/]
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
+    allowlist: [/^\/$/],
+    denylist: [/^\/api\//]
   }));
   workbox.registerRoute(({
+    url
+  }) => url.pathname.startsWith("/api/"), new workbox.NetworkFirst({
+    "cacheName": "api-cache",
+    "networkTimeoutSeconds": 5,
+    plugins: [new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 200,
+      maxAgeSeconds: 86400
+    })]
+  }), 'GET');
+  workbox.registerRoute(({
+    url
+  }) => url.origin === "https://fonts.googleapis.com" || url.origin === "https://fonts.gstatic.com", new workbox.CacheFirst({
+    "cacheName": "google-fonts",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 20,
+      maxAgeSeconds: 31536000
+    })]
+  }), 'GET');
+  workbox.registerRoute(({
     request
-  }) => request.destination === "document" || request.destination === "script" || request.destination === "style", new workbox.NetworkFirst({
+  }) => request.destination === "document", new workbox.NetworkFirst({
+    "cacheName": "pages",
+    plugins: []
+  }), 'GET');
+  workbox.registerRoute(({
+    request
+  }) => request.destination === "script" || request.destination === "style", new workbox.StaleWhileRevalidate({
     "cacheName": "static-resources",
     plugins: []
   }), 'GET');
@@ -97,7 +125,10 @@ define(['./workbox-7772232b'], (function (workbox) { 'use strict';
     request
   }) => request.destination === "image", new workbox.CacheFirst({
     "cacheName": "images",
-    plugins: []
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 50,
+      maxAgeSeconds: 2592000
+    })]
   }), 'GET');
 
 }));

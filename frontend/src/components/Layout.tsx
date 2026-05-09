@@ -1,7 +1,12 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 const navItems = [
   { label: 'Dashboard', path: '/' },
@@ -23,9 +28,42 @@ const adminNavItems = [
 
 export default function Layout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [canInstall, setCanInstall] = useState(false);
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const storedPrompt = window.deferredInstallPrompt;
+    if (storedPrompt) {
+      setDeferredPrompt(storedPrompt);
+      setCanInstall(true);
+    }
+
+    const handler = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event as BeforeInstallPromptEvent);
+      setCanInstall(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler as EventListener);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler as EventListener);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    await deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+
+    setDeferredPrompt(null);
+    setCanInstall(false);
+    console.log('PWA install prompt result:', choice.outcome);
+  };
 
   const handleLogout = () => {
     logout();
@@ -224,6 +262,15 @@ export default function Layout() {
                 )}
                 <span className="hidden md:inline">{isDark ? 'Light' : 'Dark'}</span>
               </button>
+
+              {canInstall && (
+                <button
+                  onClick={handleInstall}
+                  className="rounded-xl border border-slate-200 bg-emerald-500 px-3 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-600"
+                >
+                  Install App
+                </button>
+              )}
 
               <div className="hidden items-center gap-3 rounded-xl bg-slate-50 px-4 py-2 dark:bg-slate-700/50 md:flex">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
