@@ -75,7 +75,7 @@ router.get('/', validateQuery(purchaseListQuerySchema), asyncHandler(async (req,
 
 router.get('/:id', validateParams(purchaseParamsSchema), asyncHandler(async (req, res) => {
   const purchase = await prisma.purchase.findUnique({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     include: { party: true, items: true }
   });
 
@@ -147,7 +147,7 @@ router.put('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseUp
   }
 
   const purchase = await prisma.purchase.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: updateData,
     include: { items: true, party: true }
   });
@@ -178,7 +178,7 @@ router.patch('/:id', validateParams(purchaseParamsSchema), validateBody(purchase
   }
 
   const purchase = await prisma.purchase.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: updateData,
     include: { items: true }
   });
@@ -194,11 +194,11 @@ router.patch('/:id/status', validateParams(purchaseParamsSchema), validateBody(p
   const { paymentStatus, paidAmount } = req.body;
   
   const purchase = await prisma.purchase.findUnique({
-    where: { id: req.params.id }
+    where: { id: req.params.id as string }
   });
-  
+
   if (!purchase) throw new AppError('Purchase not found', 404);
-  
+
   let finalPaidAmount = paidAmount !== undefined ? paidAmount : purchase.paidAmount;
   if (paymentStatus === 'PAID') {
     finalPaidAmount = purchase.total;

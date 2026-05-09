@@ -77,7 +77,7 @@ router.get('/', validateQuery(returnListQuerySchema), asyncHandler(async (req, r
 // Get single purchase return
 router.get('/:id', validateParams(returnParamsSchema), asyncHandler(async (req, res) => {
   const purchaseReturn = await prisma.purchaseReturn.findUnique({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     include: { party: true, purchase: true, items: true }
   });
 
@@ -178,7 +178,7 @@ router.put('/:id', validateParams(returnParamsSchema), validateBody(purchaseRetu
   }
 
   const purchaseReturn = await prisma.purchaseReturn.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: updateData,
     include: { items: true, party: true, purchase: true }
   });
@@ -249,7 +249,7 @@ router.patch('/:id', validateParams(returnParamsSchema), validateBody(purchaseRe
   }
 
   const purchaseReturn = await prisma.purchaseReturn.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: updateData,
     include: { items: true }
   });

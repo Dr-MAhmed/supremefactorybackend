@@ -80,7 +80,7 @@ router.get('/', validateQuery(saleListQuerySchema), asyncHandler(async (req, res
 
 router.get('/:id', validateParams(saleParamsSchema), asyncHandler(async (req, res) => {
   const sale = await prisma.sale.findUnique({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     include: { party: true, items: true }
   });
 
@@ -151,7 +151,7 @@ router.put('/:id', validateParams(saleParamsSchema), validateBody(saleUpdateSche
   }
 
   const sale = await prisma.sale.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: updateData,
     include: { items: true, party: true }
   });
@@ -184,7 +184,7 @@ router.patch('/:id', validateParams(saleParamsSchema), validateBody(saleSchema.p
   }
 
   const sale = await prisma.sale.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: updateData,
     include: { items: true }
   });

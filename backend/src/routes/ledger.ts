@@ -18,8 +18,8 @@ const ledgerQuerySchema = z.object({
 router.use(authenticate);
 
 router.get('/account/:accountId', validateParams(ledgerParamsSchema), validateQuery(ledgerQuerySchema), asyncHandler(async (req, res) => {
-  const { startDate, endDate } = req.query;
-  const { accountId } = req.params;
+  const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+  const accountId = req.params.accountId as string;
 
   const where: any = { accountId };
   if (startDate || endDate) {
@@ -48,8 +48,8 @@ router.get('/account/:accountId', validateParams(ledgerParamsSchema), validateQu
 }));
 
 router.get('/party/:partyId', validateParams(ledgerParamsSchema), validateQuery(ledgerQuerySchema), asyncHandler(async (req, res) => {
-  const { startDate, endDate } = req.query;
-  const { partyId } = req.params;
+  const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+  const partyId = req.params.partyId as string;
 
   const where: any = { partyId };
   if (startDate || endDate) {
