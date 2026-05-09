@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "npm run build",
+  "buildCommand": "rm -f pnpm-lock.yaml && npm install && npm run build",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install"
+  "installCommand": "npm install"
 }
