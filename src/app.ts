@@ -24,7 +24,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(
   cors({
-    origin: ['https://supremefactory.vercel.app', 'http://localhost:5173', 'http://localhost:4173'],
+    origin: ['https://supremefactory.vercel.app/', 'https://supremefactorybackend.vercel.app/', 'http://localhost:5173', 'http://localhost:4173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
