@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import accountsRoutes from './routes/accounts';
@@ -18,13 +17,14 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
 
-app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: true,
-    credentials: true
+    origin: ['https://supremefactory.vercel.app', 'http://localhost:5173', 'http://localhost:4173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 

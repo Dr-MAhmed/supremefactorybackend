@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "framework": null,
   "builds": [
     {
       "src": "src/api/index.ts",
@@ -11,5 +11,6 @@
       "src": "/(.*)",
       "dest": "src/api/index.ts"
     }
-  ]
+  ],
+  "outputDirectory": "dist"
 }
