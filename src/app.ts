@@ -14,6 +14,7 @@ import vouchersRoutes from './routes/vouchers';
 import ledgerRoutes from './routes/ledger';
 import dashboardRoutes from './routes/dashboard';
 import reportsRoutes from './routes/reports';
+import testRoutes from './routes/test';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -29,6 +30,8 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
+
+app.use("/api/test", testRoutes);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
