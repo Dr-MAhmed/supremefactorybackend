@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import prisma from './prisma';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import accountsRoutes from './routes/accounts';
@@ -24,14 +25,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(
   cors({
-    origin: ['https://supremefactory.vercel.app/', 'https://supremefactorybackend.vercel.app/', 'http://localhost:5173', 'http://localhost:4173'],
+    origin: ['https://supremefactory.vercel.app', 'https://supremefactorybackend.vercel.app', 'http://localhost:5173', 'http://localhost:4173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
-
-app.use("/api/test", testRoutes);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -49,6 +48,7 @@ const apiLimiter = rateLimit({
   message: 'Too many requests. Please wait a few minutes and try again.'
 });
 
+app.use('/api/test', testRoutes);
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1', apiLimiter);
 app.use('/api/v1/users', usersRoutes);
