@@ -15,7 +15,6 @@ import vouchersRoutes from './routes/vouchers';
 import ledgerRoutes from './routes/ledger';
 import dashboardRoutes from './routes/dashboard';
 import reportsRoutes from './routes/reports';
-import testRoutes from './routes/test';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -48,7 +47,6 @@ const apiLimiter = rateLimit({
   message: 'Too many requests. Please wait a few minutes and try again.'
 });
 
-app.use('/api/test', testRoutes);
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1', apiLimiter);
 app.use('/api/v1/users', usersRoutes);

@@ -23,7 +23,11 @@ const saleSchema = z.object({
   tax: z.number().nonnegative().default(0),
   subtotal: z.number().nonnegative(),
   total: z.number().nonnegative(),
-  items: z.array(saleItemSchema).min(1)
+  items: z.array(saleItemSchema).min(1),
+  customerPo: z.string().nullable().optional(),
+  salesperson: z.string().nullable().optional(),
+  remarks: z.string().nullable().optional(),
+  receivedAmount: z.number().nonnegative().default(0)
 });
 
 const saleUpdateSchema = z.object({
@@ -89,7 +93,7 @@ router.get('/:id', validateParams(saleParamsSchema), asyncHandler(async (req, re
 }));
 
 router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest, res) => {
-  const { invoiceNo, date, partyId, dueDate, discount, tax, subtotal, items } = req.body;
+  const { invoiceNo, date, partyId, dueDate, discount, tax, subtotal, items, customerPo, salesperson, remarks, receivedAmount } = req.body;
   const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
@@ -111,8 +115,11 @@ router.post('/', validateBody(saleSchema), asyncHandler(async (req: AuthRequest,
       discount,
       tax,
       total: calculatedTotal,
-      receivedAmount: 0,
-      paymentStatus: 'UNPAID',
+      receivedAmount: receivedAmount ?? 0,
+      paymentStatus: receivedAmount && receivedAmount >= calculatedTotal ? 'PAID' : receivedAmount && receivedAmount > 0 ? 'PARTIAL' : 'UNPAID',
+      customerPo: customerPo ?? null,
+      salesperson: salesperson ?? null,
+      remarks: remarks ?? null,
       dueDate: dueDate ? new Date(dueDate) : undefined,
       createdById: user.userId,
       items: { create: items }
@@ -129,7 +136,7 @@ router.put('/:id', validateParams(saleParamsSchema), validateBody(saleUpdateSche
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update sales', 403);
   
   const { invoiceNo, date, partyId, dueDate, customerPo, salesperson, items, subtotal, discount, tax, remarks } = req.body;
-  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
+  const calculatedTotal = subtotal !== undefined ? Number(subtotal) - Number(discount ?? 0) + Number(tax ?? 0) : undefined;
   const updateData: any = {
     invoiceNo,
     date: date ? new Date(date) : undefined,
@@ -140,7 +147,7 @@ router.put('/:id', validateParams(saleParamsSchema), validateBody(saleUpdateSche
     subtotal,
     discount,
     tax,
-    total: calculatedTotal,
+    ...(calculatedTotal !== undefined && { total: calculatedTotal }),
     remarks
   };
   if (items) {
@@ -165,14 +172,14 @@ router.patch('/:id', validateParams(saleParamsSchema), validateBody(saleSchema.p
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update sales', 403);
   
   const { customerPo, salesperson, items, subtotal, discount, tax, dueDate, remarks } = req.body;
-  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
+  const calculatedTotal = subtotal !== undefined ? Number(subtotal) - Number(discount ?? 0) + Number(tax ?? 0) : undefined;
   const updateData: any = {
     customerPo,
     salesperson,
     subtotal,
     discount,
     tax,
-    total: calculatedTotal,
+    ...(calculatedTotal !== undefined && { total: calculatedTotal }),
     dueDate: dueDate ? new Date(dueDate) : undefined,
     remarks
   };
