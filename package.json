@@ -1,7 +1,7 @@
 {
 	"private": true,
 	"pnpm": {
-		"onlyBuiltDependencies": ["@prisma/engines", "prisma"]
+		"onlyBuiltDependencies": ["@prisma/engines", "prisma", "esbuild"]
 	},
 	"devDependencies": {
 		"typescript": "^6.0.3"
