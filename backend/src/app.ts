@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import prisma from './prisma';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import accountsRoutes from './routes/accounts';
@@ -13,15 +15,17 @@ import vouchersRoutes from './routes/vouchers';
 import ledgerRoutes from './routes/ledger';
 import dashboardRoutes from './routes/dashboard';
 import reportsRoutes from './routes/reports';
-import { errorHandler, notFoundHandler } from './middleware/errorHandler'; 
+import testRoutes from './routes/test';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(
   cors({
-    origin: ['https://supremefactory.vercel.app', 'http://localhost:5173', 'http://localhost:4173'],
+    origin: ['https://supremefactory.vercel.app', 'https://supremefactorybackend.vercel.app', 'http://localhost:5173', 'http://localhost:4173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -44,6 +48,7 @@ const apiLimiter = rateLimit({
   message: 'Too many requests. Please wait a few minutes and try again.'
 });
 
+app.use('/api/test', testRoutes);
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1', apiLimiter);
 app.use('/api/v1/users', usersRoutes);
@@ -58,8 +63,14 @@ app.use('/api/v1/ledger', ledgerRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/reports', reportsRoutes);
 
-app.get('/api/v1/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', service: 'supreme-cotton-backend' });
+app.get('/api/v1/health', async (_req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', service: 'supreme-cotton-backend', database: 'connected' });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(503).json({ status: 'error', service: 'supreme-cotton-backend', database: 'disconnected' });
+  }
 });
 
 app.use(notFoundHandler);
