@@ -20,6 +20,9 @@ const receiptSchema = z.object({
   partyId: z.string().min(1),
   amount: z.number().positive(),
   paymentMethod: z.enum(['CASH', 'BANK']),
+  bankAccount: z.string().nullable().optional(),
+  chequeNo: z.string().nullable().optional(),
+  chequeDate: z.string().nullable().optional(),
   narration: z.string().min(1)
 });
 const journalSchema = z.object({
@@ -140,7 +143,7 @@ router.get('/receipt', validateQuery(voucherListQuerySchema), asyncHandler(async
 }));
 
 router.post('/receipt', validateBody(receiptSchema), asyncHandler(async (req: AuthRequest, res) => {
-  const { partyId, amount, paymentMethod, narration } = req.body;
+  const { partyId, amount, paymentMethod, bankAccount, chequeNo, chequeDate, narration } = req.body;
   const user = (req as AuthRequest).user;
   if (!user) throw new AppError('Unauthorized', 401);
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot create receipt vouchers', 403);

@@ -59,7 +59,7 @@ router.get('/summary', asyncHandler(async (req, res) => {
   const netProfit = Number(totalSales._sum.total || 0) - Number(totalPurchases._sum.total || 0);
 
   // Cash in hand: assume from journal entries to cash account
-  const cashAccount = await prisma.account.findFirst({ where: { name: { contains: 'Cash' } } });
+  const cashAccount = await prisma.account.findFirst({ where: { code: '1001' } });
   let cashBalance = 0;
   if (cashAccount) {
     const cashDebits = await prisma.journalEntry.aggregate({

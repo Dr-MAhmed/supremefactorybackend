@@ -43,12 +43,12 @@ router.post('/login', validateBody(loginSchema), asyncHandler(async (req: Reques
 
     const accessToken = jwt.sign(
       { userId: user.id, role: user.role }, 
-      process.env.JWT_SECRET || 'secret', 
+      process.env.JWT_SECRET!, 
       { expiresIn: '15m' }
     );
     const refreshToken = jwt.sign(
       { userId: user.id }, 
-      process.env.JWT_REFRESH_SECRET || 'refresh', 
+      process.env.JWT_REFRESH_SECRET!, 
       { expiresIn: '7d' }
     );
 
@@ -79,7 +79,7 @@ router.post('/refresh', validateBody(refreshSchema), asyncHandler(async (req: Re
   const { refreshToken } = req.body;
   
   try {
-    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'refresh') as { userId: string };
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { userId: string };
     const user = await prisma.user.findUnique({ 
       where: { id: payload.userId },
       select: { id: true, name: true, email: true, role: true, isActive: true }
@@ -91,12 +91,12 @@ router.post('/refresh', validateBody(refreshSchema), asyncHandler(async (req: Re
 
     const newAccessToken = jwt.sign(
       { userId: user.id, role: user.role }, 
-      process.env.JWT_SECRET || 'secret', 
+      process.env.JWT_SECRET!, 
       { expiresIn: '15m' }
     );
     const newRefreshToken = jwt.sign(
       { userId: user.id }, 
-      process.env.JWT_REFRESH_SECRET || 'refresh', 
+      process.env.JWT_REFRESH_SECRET!, 
       { expiresIn: '7d' }
     );
 

@@ -129,14 +129,14 @@ router.put('/:id', validateParams(purchaseParamsSchema), validateBody(purchaseUp
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update purchases', 403);
   
   const { partyId, supplierInvoiceNo, items, subtotal, discount, tax, remarks } = req.body;
-  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
+  const calculatedTotal = subtotal !== undefined ? Number(subtotal) - Number(discount ?? 0) + Number(tax ?? 0) : undefined;
   const updateData: any = {
     partyId,
     supplierInvoiceNo,
     subtotal,
     discount,
     tax,
-    total: calculatedTotal,
+    ...(calculatedTotal !== undefined && { total: calculatedTotal }),
     remarks
   };
   if (items) {
@@ -161,13 +161,13 @@ router.patch('/:id', validateParams(purchaseParamsSchema), validateBody(purchase
   if (user.role === 'VIEWER') throw new AppError('Viewers cannot update purchases', 403);
   
   const { supplierInvoiceNo, items, subtotal, discount, tax, remarks } = req.body;
-  const calculatedTotal = Number(subtotal) - Number(discount) + Number(tax);
+  const calculatedTotal = subtotal !== undefined ? Number(subtotal) - Number(discount ?? 0) + Number(tax ?? 0) : undefined;
   const updateData: any = {
     supplierInvoiceNo,
     subtotal,
     discount,
     tax,
-    total: calculatedTotal,
+    ...(calculatedTotal !== undefined && { total: calculatedTotal }),
     remarks
   };
   if (items) {

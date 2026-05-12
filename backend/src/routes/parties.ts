@@ -80,11 +80,11 @@ router.delete('/:id', asyncHandler(async (req: AuthRequest, res) => {
   if (user.role !== 'ADMIN') throw new AppError('Only admins can delete parties', 403);
   
   const { id } = req.params;
-  await prisma.party.update({
+  const party = await prisma.party.update({
     where: { id },
     data: { isActive: false }
   });
-  res.status(204).send();
+  res.json(party);
 }));
 
 export default router;

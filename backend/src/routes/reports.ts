@@ -171,7 +171,7 @@ router.get('/sales', validateQuery(dateRangeQuerySchema), asyncHandler(async (re
     if (endDate) where.date.lte = new Date(endDate as string);
   }
 
-let sales = await prisma.sale.findMany({
+  let sales = await prisma.sale.findMany({
     where,
     include: { party: true, items: true }
   });
@@ -210,7 +210,7 @@ router.get('/purchases', validateQuery(dateRangeQuerySchema), asyncHandler(async
     if (endDate) where.date.lte = new Date(endDate as string);
   }
 
-let purchases = await prisma.purchase.findMany({
+  let purchases = await prisma.purchase.findMany({
     where,
     include: { party: true, items: true }
   });

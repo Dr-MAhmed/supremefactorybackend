@@ -14,7 +14,8 @@ coverage
 /backend/dist
 
 # Prisma
-prisma/migrations
+prisma/migrations/
+!prisma/migrations/migration_lock.toml
 
 # Docker
 **/docker-compose.override.yml

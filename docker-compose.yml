@@ -30,7 +30,9 @@ services:
       - '5000:5000'
     volumes:
       - ./backend:/app
-
+      - /app/node_modules
+      - /app/dist
+ 
   frontend:
     build:
       context: ./frontend
@@ -41,6 +43,8 @@ services:
       - '4173:4173'
     volumes:
       - ./frontend:/app
+      - /app/node_modules
+      - /app/dist
     depends_on:
       - backend
 
