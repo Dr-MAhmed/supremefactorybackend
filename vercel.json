@@ -1,10 +1,16 @@
 {
-  "rewrites": [
+  "buildCommand": "npx prisma generate",
+  "installCommand": "pnpm install",
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/api"
+      "src": "api/index.ts",
+      "use": "@vercel/node"
     }
   ],
-  "buildCommand": "npx prisma generate",
-  "installCommand": "pnpm install"
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.ts"
+    }
+  ]
 }
