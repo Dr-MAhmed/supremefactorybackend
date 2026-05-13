@@ -1,11 +1,10 @@
 {
+  "buildCommand": "npx prisma generate",
+  "installCommand": "pnpm install",
   "builds": [
     {
       "src": "api/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -13,7 +12,5 @@
       "src": "/(.*)",
       "dest": "api/index.ts"
     }
-  ],
-  "buildCommand": "npx prisma generate",
-  "installCommand": "pnpm install"
+  ]
 }
