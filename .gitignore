@@ -1,4 +1,22 @@
+# Node
 node_modules
 dist
 .env
-.vercel
+.env.local
+*.log
+.DS_Store
+
+# Vite
+coverage
+
+# Local build files
+/frontend/dist
+/backend/dist
+
+# Prisma
+prisma/migrations/
+!prisma/migrations/migration_lock.toml
+
+# Docker
+**/docker-compose.override.yml
+**/*.env
