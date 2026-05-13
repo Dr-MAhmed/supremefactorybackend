@@ -1,5 +1,7 @@
 {
   "framework": null,
+  "buildCommand": "npx prisma generate && npx tsc",
+  "outputDirectory": "dist",
   "builds": [
     {
       "src": "src/api/index.ts",
@@ -14,6 +16,5 @@
       "src": "/(.*)",
       "dest": "src/api/index.ts"
     }
-  ],
-  "outputDirectory": "dist"
+  ]
 }
